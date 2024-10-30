@@ -1,226 +1,52 @@
-Corrige este código para que recupere la foto del usuario y nombre del usuario logueado:
-
-Lógica para que vea la lógica ade recuperar los nombres y fotos de usuarios 
 <script type="module">
-    // Import the necessary Firebase services
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
-    // Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyCFfkmEDjqAwJNtnKByRQNt9NUQs5UdNa0",
-      authDomain: "rrhh-ee7e3.firebaseapp.com",
-      projectId: "rrhh-ee7e3",
-      storageBucket: "rrhh-ee7e3.appspot.com",
-      messagingSenderId: "605891607617",
-      appId: "1:605891607617:web:daedbd7b7b7b5a8b901ac0",
-      measurementId: "G-Q801R9M95S"
+        authDomain: "rrhh-ee7e3.firebaseapp.com",
+        projectId: "rrhh-ee7e3",
+        storageBucket: "rrhh-ee7e3.appspot.com",
+        messagingSenderId: "605891607617",
+        appId: "1:605891607617:web:daedbd7b7b7b5a8b901ac0",
+        measurementId: "G-Q801R9M95S"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
+    const auth = getAuth(app);
     const storage = getStorage(app);
 
-    // Tab navigation
-    document.querySelectorAll('.tab-link').forEach(button => {
-        button.addEventListener('click', () => {
-            document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-
-            document.querySelectorAll('.form-container').forEach(form => form.classList.remove('active'));
-            document.getElementById(button.dataset.target).classList.add('active');
+    async function cargarPerfil() {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Obtener el documento del usuario desde Firestore
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    document.getElementById("username").innerText = userData.name || "Usuario";
+                    const photoURL = userData.photoURL || "";
+                    
+                    // Cargar la imagen de perfil desde Firestore o usar la URL guardada
+                    if (photoURL) {
+                        document.getElementById("profileImage").src = photoURL;
+                    } else {
+                        const profileImageRef = ref(storage, `profiles/${user.uid}/${user.uid}.jpg`);
+                        getDownloadURL(profileImageRef)
+                            .then((url) => {
+                                document.getElementById("profileImage").src = url;
+                            })
+                            .catch((error) => console.error("Error al cargar imagen:", error));
+                    }
+                }
+            }
         });
-    });
+    }
 
-    // Iniciar Sesión
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
+    // Aquí podrías incluir el resto de tus funciones como cargarConsumos y renderizarGraficos
 
-        signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                // Iniciar sesión exitosa
-                window.location.href = "home.html"; // Redirigir a la página principal
-            })
-            .catch((error) => {
-                console.error(error);
-                alert("Error al iniciar sesión: " + error.message);
-            });
-    });
-
-    // Registrarse
-    document.getElementById('registerForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = document.getElementById('registerName').value;
-        const department = document.getElementById('registerDepartment').value;
-        const area = document.getElementById('registerArea').value;
-        const position = document.getElementById('registerPosition').value;
-        const email = document.getElementById('registerEmail').value;
-        const password = document.getElementById('registerPassword').value;
-        const phone = document.getElementById('registerPhone').value;
-        const photoFile = document.getElementById('registerPhoto').files[0];
-
-        createUserWithEmailAndPassword(auth, email, password)
-            .then(async (userCredential) => {
-                const user = userCredential.user;
-                
-                // Subir foto de perfil a Firebase Storage
-                let photoURL = "";
-                if (photoFile) {
-                    const photoRef = ref(storage, 'profiles/' + user.uid + '/' + photoFile.name);
-                    await uploadBytes(photoRef, photoFile);
-                    photoURL = await getDownloadURL(photoRef);
-                }
-
-                // Guardar información adicional en Firestore
-                await setDoc(doc(db, "users", user.uid), {
-                    name: name,
-                    department: department,
-                    area: area,
-                    position: position,
-                    email: email,
-                    phone: phone,
-                    photoURL: photoURL
-                }); 
-
-                alert("Cuenta creada exitosamente.");
-                window.location.href = "home.html"; // Redirigir a la página principal
-            })
-            .catch((error) => {
-                console.error(error);
-                alert("Error al crear la cuenta: " + error.message);
-            });
-    });
-
-    // Restablecer Contraseña
-    document.getElementById('resetForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('resetEmail').value;
-
-        sendPasswordResetEmail(auth, email)
-            .then(() => {
-                alert("Correo de restablecimiento de contraseña enviado.");
-            })
-            .catch((error) => {
-                console.error(error);
-                alert("Error al enviar el correo de restablecimiento: " + error.message);
-            });
-    });
+    cargarPerfil();
+    // renderizarGraficos(); // Descomentar si deseas llamar a esta función
 </script>
-
-</body>
-</html>
-
-
-Código a corregir:
-
-</script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCFfkmEDjqAwJNtnKByRQNt9NUQs5UdNa0",
-            authDomain: "rrhh-ee7e3.firebaseapp.com",
-            projectId: "rrhh-ee7e3",
-            storageBucket: "rrhh-ee7e3.appspot.com",
-            messagingSenderId: "605891607617",
-            appId: "1:605891607617:web:daedbd7b7b7b5a8b901ac0",
-            measurementId: "G-Q801R9M95S"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const storage = getStorage(app);
-
-        async function cargarPerfil() {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    document.getElementById("username").innerText = user.displayName || "Usuario";
-                    const profileImageRef = ref(storage, `profileImages/${user.uid}.jpg`);
-                    getDownloadURL(profileImageRef)
-                        .then((url) => {
-                            document.getElementById("profileImage").src = url;
-                        })
-                        .catch((error) => console.error("Error al cargar imagen:", error));
-                }
-            });
-        }
-
-        async function cargarConsumos() {
-            const querySnapshot = await getDocs(collection(db, "consumoRondas"));
-            const consumosPorFecha = {};
-            const consumoPorLugar = {};
-
-            querySnapshot.forEach((docSnapshot) => {
-                const data = docSnapshot.data();
-                const historial = data.historial || [];
-                const lugar = data.lugar;
-
-                historial.forEach((entry) => {
-                    const fecha = new Date(entry.fecha).toLocaleDateString();
-                    const consumo = entry.consumo || 0;
-
-                    consumosPorFecha[fecha] = (consumosPorFecha[fecha] || 0) + consumo;
-                    consumoPorLugar[lugar] = (consumoPorLugar[lugar] || 0) + consumo;
-                });
-            });
-
-            return { consumosPorFecha, consumoPorLugar };
-        }
-
-        async function renderizarGraficos() {
-            const { consumosPorFecha, consumoPorLugar } = await cargarConsumos();
-
-            const fechas = Object.keys(consumosPorFecha);
-            const consumos = Object.values(consumosPorFecha);
-
-            const lugares = Object.keys(consumoPorLugar);
-            const consumosLugar = Object.values(consumoPorLugar);
-
-            const ctxFecha = document.getElementById("consumoChart").getContext("2d");
-            new Chart(ctxFecha, {
-                type: "bar",
-                data: {
-                    labels: fechas,
-                    datasets: [{
-                        label: "Consumo Total",
-                        data: consumos,
-                        backgroundColor: 'rgba(90, 103, 216, 0.5)',
-                        borderColor: 'rgba(90, 103, 216, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: { responsive: true }
-            });
-
-            const ctxLugar = document.getElementById("lugarChart").getContext("2d");
-            new Chart(ctxLugar, {
-                type: "bar",
-                data: {
-                    labels: lugares,
-                    datasets: [{
-                        label: "Consumo por Lugar",
-                        data: consumosLugar,
-                        backgroundColor: consumosLugar.map((c) =>
-                            c < Math.max(...consumosLugar) * 0.3 ? "red" :
-                            c > Math.max(...consumosLugar) * 0.7 ? "green" : "orange"
-                        ),
-                        borderWidth: 1
-                    }]
-                },
-                options: { responsive: true }
-            });
-        }
-
-        cargarPerfil();
-        renderizarGraficos();
-    </script>
