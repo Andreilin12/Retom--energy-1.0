@@ -1,112 +1,125 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gráficos de Consumo</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #f4f4f9;
-        }
-        .sidebar {
-            width: 60px;
-            background-color: #5a67d8;
-            color: white;
-            padding: 10px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: width 0.3s;
-            position: relative;
-        }
-        .sidebar img.logo {
-            width: 40px;
-            height: 40px;
-            margin-bottom: 10px;
-        }
-        .sidebar .profile {
-            margin-top: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .sidebar .profile img {
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-        }
-        .sidebar a {
-            color: white;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px 0;
-            transition: background-color 0.3s;
-        }
-        .sidebar a:hover {
-            background-color: #4e55b8;
-        }
-        .sidebar a span {
-            display: none;
-            font-size: 12px;
-        }
-        .sidebar a:hover span {
-            display: block;
-        }
-        .content {
-            flex: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        canvas {
-            max-width: 100%;
-            margin-top: 20px;
-        }
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                flex-direction: row;
-                overflow-x: auto;
-                position: sticky;
-                top: 0;
-                z-index: 1000;
-            }
-            .sidebar img.logo {
-                display: block;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <img class="logo" src="https://firebasestorage.googleapis.com/v0/b/rrhh-ee7e3.appspot.com/o/logo%2Fimages%20(1).png?alt=media&token=e71735a8-036a-47d0-bac5-333928017c79" alt="Logo">
-        <a href="formulario-de-coontadores.html"><i class="fas fa-plus-circle"></i><span>Crear Contador</span></a>
-        <a href="Historial-de-contador.html"><i class="fas fa-history"></i><span>Registro de Contador</span></a>
-        <a href="Gestion-de-consumos.html"><i class="fas fa-tools"></i><span>Gestionar Contadores</span></a>
-        <div class="profile">
-            <img id="profileImage" alt="Perfil">
-            <span id="username">Nombre de Usuario</span>
-        </div>
-    </div>
+Corrige este código para que recupere la foto del usuario y nombre del usuario logueado:
 
-    <div class="content">
-        <h2>Gráficos de Consumo por Fecha</h2>
-        <canvas id="consumoChart"></canvas>
-        <h2>Consumo por Lugar/Apto/Edif.</h2>
-        <canvas id="lugarChart"></canvas>
-    </div>
+Lógica para que vea la lógica ade recuperar los nombres y fotos de usuarios 
+<script type="module">
+    // Import the necessary Firebase services
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCFfkmEDjqAwJNtnKByRQNt9NUQs5UdNa0",
+      authDomain: "rrhh-ee7e3.firebaseapp.com",
+      projectId: "rrhh-ee7e3",
+      storageBucket: "rrhh-ee7e3.appspot.com",
+      messagingSenderId: "605891607617",
+      appId: "1:605891607617:web:daedbd7b7b7b5a8b901ac0",
+      measurementId: "G-Q801R9M95S"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Tab navigation
+    document.querySelectorAll('.tab-link').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            document.querySelectorAll('.form-container').forEach(form => form.classList.remove('active'));
+            document.getElementById(button.dataset.target).classList.add('active');
+        });
+    });
+
+    // Iniciar Sesión
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        signInWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                // Iniciar sesión exitosa
+                window.location.href = "home.html"; // Redirigir a la página principal
+            })
+            .catch((error) => {
+                console.error(error);
+                alert("Error al iniciar sesión: " + error.message);
+            });
+    });
+
+    // Registrarse
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('registerName').value;
+        const department = document.getElementById('registerDepartment').value;
+        const area = document.getElementById('registerArea').value;
+        const position = document.getElementById('registerPosition').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const phone = document.getElementById('registerPhone').value;
+        const photoFile = document.getElementById('registerPhoto').files[0];
+
+        createUserWithEmailAndPassword(auth, email, password)
+            .then(async (userCredential) => {
+                const user = userCredential.user;
+                
+                // Subir foto de perfil a Firebase Storage
+                let photoURL = "";
+                if (photoFile) {
+                    const photoRef = ref(storage, 'profiles/' + user.uid + '/' + photoFile.name);
+                    await uploadBytes(photoRef, photoFile);
+                    photoURL = await getDownloadURL(photoRef);
+                }
+
+                // Guardar información adicional en Firestore
+                await setDoc(doc(db, "users", user.uid), {
+                    name: name,
+                    department: department,
+                    area: area,
+                    position: position,
+                    email: email,
+                    phone: phone,
+                    photoURL: photoURL
+                }); 
+
+                alert("Cuenta creada exitosamente.");
+                window.location.href = "home.html"; // Redirigir a la página principal
+            })
+            .catch((error) => {
+                console.error(error);
+                alert("Error al crear la cuenta: " + error.message);
+            });
+    });
+
+    // Restablecer Contraseña
+    document.getElementById('resetForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('resetEmail').value;
+
+        sendPasswordResetEmail(auth, email)
+            .then(() => {
+                alert("Correo de restablecimiento de contraseña enviado.");
+            })
+            .catch((error) => {
+                console.error(error);
+                alert("Error al enviar el correo de restablecimiento: " + error.message);
+            });
+    });
+</script>
+
+</body>
+</html>
+
+
+Código a corregir:
+
+</script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -211,5 +224,3 @@
         cargarPerfil();
         renderizarGraficos();
     </script>
-</body>
-</html>
