@@ -64,7 +64,7 @@
       outline: none; 
     }
     .drag-handle {
-      cursor: move;
+      cursor: grab;
       color: #888;
       margin-right: 10px;
     }
@@ -140,7 +140,10 @@
     });
 
     let draggedRow = null;
+    let touchStartY = 0;
+    let touchEndY = 0;
 
+    // Eventos de mouse
     registroTableBody.addEventListener("dragstart", (e) => {
       if (e.target.nodeName === "TR") {
         draggedRow = e.target;
@@ -159,6 +162,45 @@
         const destino = e.target.closest("tr");
         registroTableBody.insertBefore(draggedRow, destino.nextSibling);
 
+        const nuevoOrden = Array.from(registroTableBody.querySelectorAll("tr")).map((tr, index) => ({
+          id: tr.querySelector(".editable").getAttribute("data-id"),
+          orden: index
+        }));
+
+        nuevoOrden.forEach(async (registro) => {
+          const registroRef = doc(db, "consumoRondas", registro.id);
+          await updateDoc(registroRef, { orden: registro.orden });
+        });
+      }
+      draggedRow = null;
+    });
+
+    // Eventos táctiles para dispositivos móviles
+    registroTableBody.addEventListener("touchstart", (e) => {
+      const tr = e.target.closest("tr");
+      if (tr) {
+        draggedRow = tr;
+        touchStartY = e.touches[0].clientY;
+      }
+    });
+
+    registroTableBody.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      touchEndY = e.touches[0].clientY;
+
+      const rowBelow = document.elementFromPoint(e.touches[0].clientX, touchEndY).closest("tr");
+      if (rowBelow && rowBelow !== draggedRow) {
+        if (touchEndY > touchStartY) {
+          registroTableBody.insertBefore(rowBelow, draggedRow);
+        } else {
+          registroTableBody.insertBefore(draggedRow, rowBelow);
+        }
+        touchStartY = touchEndY;
+      }
+    });
+
+    registroTableBody.addEventListener("touchend", async () => {
+      if (draggedRow) {
         const nuevoOrden = Array.from(registroTableBody.querySelectorAll("tr")).map((tr, index) => ({
           id: tr.querySelector(".editable").getAttribute("data-id"),
           orden: index
