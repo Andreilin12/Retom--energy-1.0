@@ -10,8 +10,8 @@
         /* Estilo para la página de inicio de sesión */
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
+            background-color: #2c3e50;
+            color: #fff;
             margin: 0;
             padding: 0;
             display: flex;
@@ -37,8 +37,8 @@
             border: 1px solid #ddd;
         }
         .btn {
-            background-color: #007BFF;
-            color: white;
+            background-color: #16e086;
+            color: #000;
             padding: 10px;
             width: 86%;
             border: none;
@@ -58,7 +58,7 @@
 
 @media (max-width: 480px) {
     .login-container {
-        padding: 15px; /* Aún menos padding en móviles */
+        padding: 50px; /* Aún menos padding en móviles */
         margin: 10px; /* Aumentar el margen para alejar de los bordes */
     }
     h2 {
@@ -70,15 +70,29 @@
 }
 
 
-        .btn:hover { background-color: #0056b3; }
-        .loading-spinner {
-            display: none;
-            border: 5px solid #f4f4f4;
-            border-radius: 50%;
-            border-top: 5px solid #007BFF;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
+    	
+
+         
+        .btn:hover { background-color: #2c3e50; }
+         
+         .loading-spinner {
+    display: none; /* Cambia a 'block' o 'flex' cuando quieras mostrarlo */
+    border: 5px solid #2c3e50;
+    border-radius: 50%;
+    border-top: 5px solid #16e086;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    position: fixed; 
+    top: 50%; /* Centrado vertical */
+    left: 50%; /* Centrado horizontal */
+    transform: translate(-50%, -50%); /* Ajusta la posición para centrarse */
+    background: rgba(255, 255, 255, 0.8); /* Fondo semi-transparente */
+    z-index: 9999; /* Asegura que esté por encima de otros elementos */
+}
+
+
+    -spinner
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -87,7 +101,7 @@
         /* Estilo para la barra lateral */
         .sidebar {
             width: 160px;
-            background-color: #5a67d8;
+            background-color: #2c3e50;
             color: white;
             padding: 40px 0;
             display: flex;
@@ -99,9 +113,13 @@
             z-index: 1000;
             display: none; /* Ocultar por defecto */
         }
+        h4 {
+        	color: #000;
+        	}
+        	
         .sidebar img.logo {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             margin-bottom: 10px;
         }
         .sidebar .profile {
@@ -127,7 +145,7 @@
             margin: 0 5px;
         }
         .sidebar a:hover {
-            background-color: #4e55b8;
+            background-color: #16e086;
         }
         .sidebar a span {
             display: none;
@@ -142,12 +160,12 @@
             display: none; /* Ocultar por defecto */
             flex-direction: column;
             align-items: center;
-
-
         }
         canvas {
             max-width: 90%;
             margin-top: 20px;
+           background-color: #fff;
+           border-radius: 10px;
         }
     @media (max-width: 768px) {
         .sidebar {
@@ -158,7 +176,7 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            padding: 35px; /* Ajustar el padding para una mejor apariencia */
+            padding: 25px; /* Ajustar el padding para una mejor apariencia */
         }
         .sidebar img.logo {
             display: block;
@@ -172,7 +190,7 @@
 </head>
 <body>
     <div class="login-container" id="login-container">
-        <h2>Inicio de Sesión</h2>
+        <h4>Retom energy <br> Playa palmera</h6>
         <input type="email" id="email" placeholder="Correo Electrónico" required>
         <input type="password" id="password" placeholder="Contraseña" required>
         <button class="btn" id="loginBtn">Iniciar Sesión</button>
