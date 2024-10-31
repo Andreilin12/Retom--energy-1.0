@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Estilo para la página de inicio de sesión */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column; /* Cambiado para centrar todo verticalmente */
+            height: 100vh; /* Asegurarse de que el body ocupe toda la altura de la pantalla */
+        }
+        .login-container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 40px;
+            width: 305px;
+            text-align: center;
+            margin: auto; /* Centrar la caja de inicio de sesión */
+            margin-top: auto; /* Para que se mantenga en el centro cuando la página se expanda */
+        }
+        h2 { margin-bottom: 20px; }
+        input[type="email"], input[type="password"] {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .btn {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px;
+            width: 86%;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+   
+        }
+
+         * Medias queries para adaptaciones específicas */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 20px; /* Reducir el padding en pantallas más pequeñas */
+    }
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 15px; /* Aún menos padding en móviles */
+        margin: 10px; /* Aumentar el margen para alejar de los bordes */
+    }
+    h2 {
+        font-size: 1.5em; /* Ajustar el tamaño de la fuente del título */
+    }
+    .btn {
+        padding: 12px; /* Aumentar el padding en el botón */
+    }
+}
+
+
+        .btn:hover { background-color: #0056b3; }
+        .loading-spinner {
+            display: none;
+            border: 5px solid #f4f4f4;
+            border-radius: 50%;
+            border-top: 5px solid #007BFF;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Estilo para la barra lateral */
+        .sidebar {
+            width: 160px;
+            background-color: #5a67d8;
+            color: white;
+            padding: 40px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: fixed;
+            height: 100%;
+            transition: width 0.3s;
+            z-index: 1000;
+            display: none; /* Ocultar por defecto */
+        }
+        .sidebar img.logo {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+        .sidebar .profile {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+        }
+        .sidebar .profile img {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 5px;
+            transition: background-color 0.3s;
+            margin: 0 5px;
+        }
+        .sidebar a:hover {
+            background-color: #4e55b8;
+        }
+        .sidebar a span {
+            display: none;
+            font-size: 12px;
+        }
+        .sidebar a:hover span {
+            display: block;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            display: none; /* Ocultar por defecto */
+            flex-direction: column;
+            align-items: center;
+
+
+        }
+        canvas {
+            max-width: 90%;
+            margin-top: 20px;
+        }
+    @media (max-width: 768px) {
+        .sidebar {
+            width: auto; /* Cambiar a auto para adaptarse a los elementos */
+            height: auto;
+            flex-direction: row;
+            overflow-x: auto; /* Permitir desplazamiento horizontal si es necesario */
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 20px; /* Ajustar el padding para una mejor apariencia */
+        }
+        .sidebar img.logo {
+            display: block;
+        }
+        .sidebar .profile {
+            margin-left: auto; /* Mantener el perfil a la derecha */
+            flex-direction: row; /* Alinear imagen y nombre en fila */
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="login-container">
+        <h2>Inicio de Sesión</h2>
+        <input type="email" id="email" placeholder="Correo Electrónico" required>
+        <input type="password" id="password" placeholder="Contraseña" required>
+        <button class="btn" id="loginBtn">Iniciar Sesión</button>
+        <div class="loading-spinner" id="loadingSpinner"></div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <img class="logo" src="https://firebasestorage.googleapis.com/v0/b/rrhh-ee7e3.appspot.com/o/logo%2Fimages%20(1).png?alt=media&token=e71735a8-036a-47d0-bac5-333928017c79" alt="Logo">
+        <a href="formulario-de-contadores.html"><i class="fas fa-plus-circle"></i><span>Crear Contador</span></a>
+        <a href="Historial-de-contador.html"><i class="fas fa-history"></i><span>Registro de Contador</span></a>
+        <a href="Gestion-de-consumos.html"><i class="fas fa-tools"></i><span>Gestionar Contadores</span></a>
+        <div class="profile">
+            <img id="profileImage" alt="Perfil">
+            <span id="username">Nombre de Usuario</span>
+        </div>
+    </div>
+
+    <div class="content" id="content">
+        <h2>Gráficos de Consumo por Fecha</h2>
+        <canvas id="consumoChart"></canvas>
+        <h2>Consumo por Lugar/Apto/Edif.</h2>
+        <canvas id="lugarChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCFfkmEDjqAwJNtnKByRQNt9NUQs5UdNa0",
+        authDomain: "rrhh-ee7e3.firebaseapp.com",
+        projectId: "rrhh-ee7e3",
+        storageBucket: "rrhh-ee7e3.appspot.com",
+        messagingSenderId: "605891607617",
+        appId: "1:605891607617:web:daedbd7b7b7b5a8b901ac0",
+        measurementId: "G-Q801R9M95S"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+
+    // Función para iniciar sesión
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        document.getElementById("loadingSpinner").style.display = "block";
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            cargarPerfil();
+            await cargarConsumos(); // Llamar a cargarConsumos aquí
+        } catch (error) {
+            console.error("Error de inicio de sesión:", error);
+            alert("Error al iniciar sesión: " + message); // Muestra alerta en caso de error
+        } finally {
+            document.getElementById("loadingSpinner").style.display = "none";
+        }
+    }); 
+
+    // Función para cargar el perfil del usuario
+async function cargarPerfil() {
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const userData = userDoc.data();
+            document.getElementById("username").innerText = userData.name || "Usuario";
+
+            // Usa userData.photoURL para establecer la imagen de perfil
+            if (userData.photoURL) {
+                document.getElementById("profileImage").src = userData.photoURL;
+            } else {
+                // Maneja el caso en que no hay imagen de perfil
+                document.getElementById("profileImage").src = 'ruta/a/imagen/por/defecto.jpg'; // Cambia a la ruta de tu imagen por defecto
+            }
+  
+
+                document.getElementById("sidebar").style.display = "flex"; // Mostrar la barra lateral
+                document.getElementById("content").style.display = "flex"; // Mostrar el contenido
+                document.getElementById("login-container").style.display = "none"; // Ocultar el contenedor de inicio de sesión
+            } else {
+                console.log("Usuario no autenticado");
+            }
+        });
+    }
+
+    // Función para cargar consumos
+    async function cargarConsumos() {
+        const querySnapshot = await getDocs(collection(db, "consumoRondas"));
+        const consumosPorFecha = {};
+        const consumoPorLugar = {};
+
+        querySnapshot.forEach((docSnapshot) => {
+            const data = docSnapshot.data();
+            const historial = data.historial || [];
+            const lugar = data.lugar;
+
+            historial.forEach((entry) => {
+                const fecha = new Date(entry.fecha).toLocaleDateString();
+                const consumo = entry.consumo || 0;
+
+                consumosPorFecha[fecha] = (consumosPorFecha[fecha] || 0) + consumo;
+                consumoPorLugar[lugar] = (consumoPorLugar[lugar] || 0) + consumo;
+            });
+        });
+
+        return { consumosPorFecha, consumoPorLugar };
+    }
+
+    async function renderizarGraficos() {
+        const { consumosPorFecha, consumoPorLugar } = await cargarConsumos();
+
+        const fechas = Object.keys(consumosPorFecha);
+        const consumos = Object.values(consumosPorFecha);
+
+        const lugares = Object.keys(consumoPorLugar);
+        const consumosLugar = Object.values(consumoPorLugar);
+
+        const ctxFecha = document.getElementById("consumoChart").getContext("2d");
+        new Chart(ctxFecha, {
+            type: "bar",
+            data: {
+                labels: fechas,
+                datasets: [{
+                    label: "Consumo Total",
+                    data: consumos,
+                    backgroundColor: 'rgba(90, 103, 216, 0.5)',
+                    borderColor: 'rgba(90, 103, 216, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        const ctxLugar = document.getElementById("lugarChart").getContext("2d");
+        new Chart(ctxLugar, {
+            type: "bar",
+            data: { 
+                labels: lugares,
+                datasets: [{
+                    label: "Consumo por Lugar",
+                    data: consumosLugar,
+                    backgroundColor: consumosLugar.map((c) =>
+                        c < Math.max(...consumosLugar) * 0.3 ? "red" :
+                        c > Math.max(...consumosLugar) * 0.7 ? "green" : "orange"
+                    ),
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true }
+        });
+    }
+
+    cargarPerfil(); // Carga el perfil al inicio
+    renderizarGraficos(); // Renderiza los gráficos al inicio
+</script>
+
+</body>
+</html>
