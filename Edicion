@@ -1,0 +1,227 @@
+Yo quiero que solo deje el campo de consumo editable lo demás no, y que los campos se pueda ordenar manualmente de abajo hacia arriba y de arriba hacia abajo, y que esos datos se guarden en firebase cada vez que se órdenes.
+
+
+Código completo:
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualización de Registros</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+  <style>
+    body { 
+    	font-family: Arial, sans-serif; 
+    	background-color: #2c3e50; 
+    	color: #333; display: flex; 
+    	justify-content: center; 
+    	align-items: center; 
+    	min-height: 100vh; 
+    	margin: 0; 
+    	}
+    .container { 
+    	max-width: 800px; 
+    	background-color: #fff; 
+    	border-radius: 10px; 
+    	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+    	padding: 20px; 
+    	margin: 20px; 
+    	}
+    h2 { 
+    	text-align: center; 
+    	color: #333; 
+    	}
+    table { 
+    	width: 100%; margin-top: 20px; 
+    	border-collapse: collapse; 
+    	text-align: left; 
+    	}
+    table, th, td { 
+    	border: 1px solid #ddd; 
+    	}
+    th, td { 
+    	padding: 12px; 
+    	}
+    th { 
+    	background-color: #2c3e50; 
+    	color: #fff; 
+    	}
+    .editable { 
+    	background-color: #edf2f7; 
+    	cursor: text; 
+    	transition: background-color 0.3s ease; 
+    	}
+    .editable:focus { 
+    	background-color: #e2e8f0; 
+    	outline: none; 
+    	}
+    	
+    	
+  .icon {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #1abc9c;
+        }
+        .config-title {
+            flex: 1; /* Para ocupar el espacio restante */
+            font-size: 18px;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .config-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            transition: background-color 0.3s;
+        }
+        .config-item:hover {
+            background-color: #16a085;
+        }
+        .config-item:last-child {
+            border-bottom: none; /* Eliminar el borde en el último ítem */
+        }
+
+
+      /* Desactivar la selección de texto y el efecto de arrastre en todos los elementos */
+* {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE 10+ */
+  user-select: none; /* estándar */
+
+  -webkit-user-drag: none; /* Safari */
+  -khtml-user-drag: none; /* Konqueror HTML */
+  -moz-user-drag: none; /* Firefox */
+  -o-user-drag: none; /* Opera */
+  user-drag: none; /* estándar */
+ }
+
+        .back-button {
+    position: fixed;
+    top: 10px; /* Distancia desde la parte superior */
+    left: 10px; /* Distancia desde el borde izquierdo */
+    background-color: #16a085; /* Color de fondo */
+    color: #fff; /* Color del texto y del icono */
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s; /* Transición suave para el color de fondo */
+    z-index: 1000; /* Asegura que el botón esté sobre otros elementos */
+}
+
+.back-button i {
+    margin-right: 8px; /* Espacio entre el icono y el texto */
+}
+
+.back-button:hover {
+    background-color: #2c2e50; /* Color de fondo al pasar el ratón */
+}
+        
+  </style>
+</head>
+<body>
+  <button class="back-button" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i> Volver
+    </button>  
+  <div class="container">
+    <h2>Registros de Consumo</h2>
+    <table id="registroTable">
+      <thead>
+        <tr>
+          <th>Edif. / Apto</th>
+          <th>Número de Medidores</th>
+          <th>Número de Contratos</th>
+          <th>Consumo kwh</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Aquí se mostrarán los registros desde Firebase -->
+      </tbody>
+    </table>
+    <p style="text-align: center; margin-top: 15px;">
+      <div class="container">
+    <div class="config-item">
+        <i class="fas fa-plus-circle icon"></i>
+        <a href="formulario-de-coontadores.html" class="config-title">Agregar contadore</a>
+    </div>
+    <div class="config-item">
+        <i class="fas fa-list icon"></i>
+        <a href="Historial-de-contador.html" class="config-title">Lista de Consumos</a>
+    </div>
+    </a>
+    </p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+    authDomain: "energycontador-20e7d.firebaseapp.com",
+    databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+    projectId: "energycontador-20e7d",
+    storageBucket: "energycontador-20e7d.appspot.com",
+    messagingSenderId: "216700307706",
+    appId: "1:216700307706:web:dedc278ff696be60662143"
+  };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const registroTableBody = document.querySelector("#registroTable tbody");
+
+    async function cargarRegistros() {
+      registroTableBody.innerHTML = "";
+      const querySnapshot = await getDocs(collection(db, "consumoRondas"));
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
+        const tr = document.createElement("tr");
+        
+        tr.innerHTML = `
+          <td class="editable" contenteditable="true" data-id="${docSnapshot.id}" data-campo="lugar">${data.lugar}</td>
+          <td class="editable" contenteditable="true" data-id="${docSnapshot.id}" data-campo="medidores">${data.medidores}</td>
+          <td class="editable" contenteditable="true" data-id="${docSnapshot.id}" data-campo="contratos">${data.contratos}</td>
+          <td class="editable" contenteditable="true" data-id="${docSnapshot.id}" data-campo="consumo">${data.consumo}</td>
+        `;
+        registroTableBody.appendChild(tr);
+      });
+    }
+
+    registroTableBody.addEventListener("focusout", async (e) => {
+      if (e.target.classList.contains("editable")) {
+        const id = e.target.getAttribute("data-id");
+        const campo = e.target.getAttribute("data-campo"); 
+        const nuevoValor = e.target.textContent;
+
+        const registroRef = doc(db, "consumoRondas", id);
+        const registroDoc = await getDoc(registroRef);
+        const historial = registroDoc.data().historial || []; 
+
+        // Guardar el nuevo valor y actualizar el historial si es el campo de consumo
+        const actualizacion = { [campo]: nuevoValor };
+        if (campo === "consumo") {
+          historial.push({ fecha: new Date().toISOString(), consumo: nuevoValor });
+          actualizacion.historial = historial;
+        }
+
+        await updateDoc(registroRef, actualizacion);
+      }
+    });
+
+    cargarRegistros();
+  </script>
+</body>
+</html>
+
