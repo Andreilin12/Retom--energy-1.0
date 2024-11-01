@@ -59,7 +59,7 @@
       margin-top: 20px; 
       border-collapse: collapse; 
       text-align: left; 
-      table-layout: fixed; /* Cambiado a fixed para una mejor gestión de ancho de columnas */
+      table-layout: fixed;
     }
 
     th, td { 
@@ -67,8 +67,8 @@
       border: 1px solid #ddd;
       overflow: hidden; 
       text-overflow: ellipsis; 
-      white-space: normal; /* Permitir que el texto se divida en varias líneas */
-      word-wrap: break-word; /* Asegura que el texto se divida cuando sea necesario */
+      white-space: normal; 
+      word-wrap: break-word; 
       font-size: 0.9em; 
     }
 
@@ -101,51 +101,49 @@
       }
     }
 
-    /* Desactivar la selección de texto y el efecto de arrastre en todos los elementos */
-* {
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE 10+ */
-  user-select: none; /* estándar */
+    * {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
+      user-drag: none;
+    }
 
-  -webkit-user-drag: none; /* Safari */
-  -khtml-user-drag: none; /* Konqueror HTML */
-  -moz-user-drag: none; /* Firefox */
-  -o-user-drag: none; /* Opera */
-  user-drag: none; /* estándar */
- }
+    .back-button {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background-color: #16a085;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s;
+      z-index: 1000;
+    }
 
-        .back-button {
-    position: fixed;
-    top: 10px; /* Distancia desde la parte superior */
-    left: 10px; /* Distancia desde el borde izquierdo */
-    background-color: #16a085; /* Color de fondo */
-    color: #fff; /* Color del texto y del icono */
-    border: none;
-    border-radius: 4px;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    transition: background-color 0.3s; /* Transición suave para el color de fondo */
-    z-index: 1000; /* Asegura que el botón esté sobre otros elementos */
-}
+    .back-button i {
+      margin-right: 8px;
+    }
 
-.back-button i {
-    margin-right: 8px; /* Espacio entre el icono y el texto */
-}
-
-.back-button:hover {
-    background-color: #2c2e50; /* Color de fondo al pasar el ratón */
-}
+    .back-button:hover {
+      background-color: #2c2e50;
+    }
   </style>
 </head>
 <body>
       
-     <button class="back-button" onclick="goBack()">
-        <i class="fas fa-arrow-left"></i> Volver
-    </button>  
+  <button class="back-button" onclick="goBack()">
+    <i class="fas fa-arrow-left"></i> Volver
+  </button>  
   <div class="container">
     <h2>Registros de Consumo</h2>
     <input type="search" id="buscador" placeholder="Buscar por Edificio o Número de Medidor">
@@ -167,7 +165,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
@@ -188,14 +186,14 @@
       registroTableBody.innerHTML = "";
       const querySnapshot = await getDocs(collection(db, "consumoRondas"));
       const registros = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
+
       registros.sort((a, b) => (a.orden || 0) - (b.orden || 0));
 
       registros.forEach((data) => {
         const tr = document.createElement("tr");
         tr.setAttribute("data-id", data.id);
         tr.setAttribute("data-orden", data.orden);
-        
+
         tr.innerHTML = `
           <td>
             <div class="arrow-buttons">
@@ -208,7 +206,7 @@
           <td>${data.contratos}</td>
           <td class="editable" contenteditable="true" data-id="${data.id}" data-campo="consumo">${data.consumo}</td>
         `;
-        
+
         registroTableBody.appendChild(tr);
       });
 
@@ -223,10 +221,21 @@
     registroTableBody.addEventListener("focusout", async (e) => {
       if (e.target.classList.contains("editable")) {
         const id = e.target.getAttribute("data-id");
+        const campo = e.target.getAttribute("data-campo"); 
         const nuevoValor = e.target.textContent;
 
         const registroRef = doc(db, "consumoRondas", id);
-        await updateDoc(registroRef, { consumo: nuevoValor });
+        const registroDoc = await getDoc(registroRef);
+        const historial = registroDoc.data().historial || []; 
+
+        // Guardar el nuevo valor y actualizar el historial si es el campo de consumo
+        const actualizacion = { [campo]: nuevoValor };
+        if (campo === "consumo") {
+          historial.push({ fecha: new Date().toISOString(), consumo: nuevoValor });
+          actualizacion.historial = historial;
+        }
+
+        await updateDoc(registroRef, actualizacion);
       }
     });
 
@@ -237,7 +246,7 @@
       const filaArriba = document.querySelector(`tr[data-orden="${ordenActual - 1}"]`);
       if (!filaArriba) return;
 
-      await intercambiarPosiciones(filaActual, filaArriba);
+      await intercambiarPosiciones(filaActual, filaArriba, ordenActual, ordenActual - 1);
     }
 
     async function moverAbajo(id) {
@@ -247,48 +256,41 @@
       const filaAbajo = document.querySelector(`tr[data-orden="${ordenActual + 1}"]`);
       if (!filaAbajo) return;
 
-      await intercambiarPosiciones(filaActual, filaAbajo);
+      await intercambiarPosiciones(filaActual, filaAbajo, ordenActual, ordenActual + 1);
     }
 
-    async function intercambiarPosiciones(fila1, fila2) {
-      const orden1 = parseInt(fila1.getAttribute("data-orden"));
-      const orden2 = parseInt(fila2.getAttribute("data-orden"));
-
+    async function intercambiarPosiciones(fila1, fila2, orden1, orden2) {
       const id1 = fila1.getAttribute("data-id");
       const id2 = fila2.getAttribute("data-id");
 
-      fila1.setAttribute("data-orden", orden2);
-      fila2.setAttribute("data-orden", orden1);
+      await updateDoc(doc(db, "consumoRondas", id1), { orden: orden2 });
+      await updateDoc(doc(db, "consumoRondas", id2), { orden: orden1 });
 
-      registroTableBody.insertBefore(fila2, fila1);
-
-      const registroRef1 = doc(db, "consumoRondas", id1); 
-      const registroRef2 = doc(db, "consumoRondas", id2);
-
-      await updateDoc(registroRef1, { orden: orden2 });
-      await updateDoc(registroRef2, { orden: orden1 });
+      cargarRegistros();
     }
 
     buscador.addEventListener("input", function() {
-      const valor = this.value.toLowerCase();
+      const valorBuscado = buscador.value.toLowerCase();
       const filas = registroTableBody.getElementsByTagName("tr");
 
-      Array.from(filas).forEach(fila => {
-        const textoFila = fila.innerText.toLowerCase();
-        fila.style.display = textoFila.includes(valor) ? "" : "none";
-      });
+      for (let i = 0; i < filas.length; i++) {
+        const celdaEdificio = filas[i].getElementsByTagName("td")[1];
+        const celdaMedidor = filas[i].getElementsByTagName("td")[2];
+
+        if (celdaEdificio || celdaMedidor) {
+          const textoEdificio = celdaEdificio.textContent.toLowerCase();
+          const textoMedidor = celdaMedidor.textContent.toLowerCase();
+
+          filas[i].style.display = (textoEdificio.indexOf(valorBuscado) > -1 || textoMedidor.indexOf(valorBuscado) > -1) ? "" : "none";
+        }
+      }
     });
+
+    function goBack() {
+      window.history.back();
+    }
 
     cargarRegistros();
   </script>
 </body>
 </html>
-
-
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script>
-        function goBack() {
-            window.history.back();
-        }
-    </script>
-
