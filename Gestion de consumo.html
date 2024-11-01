@@ -6,10 +6,10 @@
   <title>Visualización de Registros</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  
+
   <style>
     body { 
-      font-family: Arial, sans-serif; 
+      font-family: 'Poppins', sans-serif; 
       background-color: #2c3e50; 
       color: #333; 
       display: flex; 
@@ -17,56 +17,88 @@
       align-items: center; 
       min-height: 100vh; 
       margin: 0; 
+      padding: 10px; 
+      box-sizing: border-box;
     }
+
     .container { 
       max-width: 800px; 
       background-color: #fff; 
       border-radius: 10px; 
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
       padding: 20px; 
-      margin: 20px; 
+      margin: 10px; 
+      width: 100%; 
+      box-sizing: border-box;
+      overflow-x: auto; 
     }
-    h2 { 
-      text-align: center; 
-      color: #333; 
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
     }
+
     input[type="search"] {
       width: 100%;
-      padding: 8px;
-      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
       border-radius: 5px;
-      border: 1px solid #ccc;
+      margin-bottom: 20px;
+      font-size: 1em;
+      transition: border-color 0.3s;
     }
+
+    input[type="search"]:focus {
+      outline: none;
+      border-color: #2c3e50;
+    }
+
     table { 
       width: 100%; 
       margin-top: 20px; 
       border-collapse: collapse; 
       text-align: left; 
+      table-layout: fixed; /* Cambiado a fixed para una mejor gestión de ancho de columnas */
     }
-    table, th, td { 
-      border: 1px solid #ddd; 
-    }
+
     th, td { 
-      padding: 12px; 
-      position: relative;
+      padding: 8px; 
+      border: 1px solid #ddd;
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+      white-space: normal; /* Permitir que el texto se divida en varias líneas */
+      word-wrap: break-word; /* Asegura que el texto se divida cuando sea necesario */
+      font-size: 0.9em; 
     }
+
     th { 
       background-color: #2c3e50; 
       color: #fff; 
     }
-    .editable { 
-      background-color: #edf2f7; 
-      cursor: text; 
-      transition: background-color 0.3s ease; 
+
+    .arrow-buttons { 
+      display: flex; 
+      gap: 5px; 
     }
-    .editable:focus { 
-      background-color: #e2e8f0; 
-      outline: none; 
+
+    .arrow-buttons button { 
+      background: none; 
+      border: none; 
+      cursor: pointer; 
+      color: #888; 
+      font-size: 1.0em; 
     }
-    .drag-handle {
-      cursor: move;
-      color: #888;
-      margin-right: 10px;
+
+    @media (max-width: 768px) {
+      th, td {
+        padding: 8px 6px; 
+        font-size: 0.8em; 
+      }
+
+      input[type="search"] {
+        font-size: 0.9em; 
+      }
     }
   </style>
 </head>
@@ -118,10 +150,16 @@
 
       registros.forEach((data) => {
         const tr = document.createElement("tr");
-        tr.setAttribute("draggable", "true");
+        tr.setAttribute("data-id", data.id);
+        tr.setAttribute("data-orden", data.orden);
         
         tr.innerHTML = `
-          <td><i class="fas fa-grip-lines drag-handle"></i></td>
+          <td>
+            <div class="arrow-buttons">
+              <button class="btn-up" data-id="${data.id}">&#9650;</button>
+              <button class="btn-down" data-id="${data.id}">&#9660;</button>
+            </div>
+          </td>
           <td>${data.lugar}</td>
           <td>${data.medidores}</td>
           <td>${data.contratos}</td>
@@ -129,6 +167,13 @@
         `;
         
         registroTableBody.appendChild(tr);
+      });
+
+      document.querySelectorAll(".btn-up").forEach(button => {
+        button.addEventListener("click", () => moverArriba(button.getAttribute("data-id")));
+      });
+      document.querySelectorAll(".btn-down").forEach(button => {
+        button.addEventListener("click", () => moverAbajo(button.getAttribute("data-id")));
       });
     }
 
@@ -142,88 +187,52 @@
       }
     });
 
-    let draggedRow = null;
+    async function moverArriba(id) {
+      const filaActual = document.querySelector(`tr[data-id="${id}"]`);
+      const ordenActual = parseInt(filaActual.getAttribute("data-orden"));
 
-    // Mouse events
-    registroTableBody.addEventListener("dragstart", (e) => {
-      if (e.target.nodeName === "TR") {
-        draggedRow = e.target;
-        e.dataTransfer.effectAllowed = "move";
-      }
-    });
+      const filaArriba = document.querySelector(`tr[data-orden="${ordenActual - 1}"]`);
+      if (!filaArriba) return;
 
-    registroTableBody.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-    });
-
-    registroTableBody.addEventListener("drop", async (e) => {
-      e.preventDefault();
-      if (e.target.closest("tr") && draggedRow) {
-        const destino = e.target.closest("tr");
-        registroTableBody.insertBefore(draggedRow, destino.nextSibling);
-
-        await guardarOrden();
-      }
-      draggedRow = null;
-    });
-
-    // Touch events
-    let initialTouch = null;
-
-    registroTableBody.addEventListener("touchstart", (e) => {
-      if (e.target.nodeName === "TR") {
-        draggedRow = e.target;
-        initialTouch = e.touches[0]; // Store initial touch position
-      }
-    });
-
-    registroTableBody.addEventListener("touchmove", (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const targetRow = draggedRow;
-
-      if (targetRow) {
-        const rowHeight = targetRow.offsetHeight;
-        const rows = Array.from(registroTableBody.querySelectorAll("tr"));
-
-        rows.forEach((row) => {
-          if (row !== targetRow) {
-            const rect = row.getBoundingClientRect();
-            if (touch.clientY > rect.top && touch.clientY < rect.bottom) {
-              registroTableBody.insertBefore(targetRow, row);
-            }
-          }
-        });
-      }
-    });
-
-    registroTableBody.addEventListener("touchend", async () => {
-      if (draggedRow) {
-        await guardarOrden();
-      }
-      draggedRow = null;
-    });
-
-    function guardarOrden() {
-      const nuevoOrden = Array.from(registroTableBody.querySelectorAll("tr")).map((tr, index) => ({
-        id: tr.querySelector(".editable").getAttribute("data-id"),
-        orden: index
-      }));
-
-      nuevoOrden.forEach(async (registro) => {
-        const registroRef = doc(db, "consumoRondas", registro.id);
-        await updateDoc(registroRef, { orden: registro.orden });
-      });
+      await intercambiarPosiciones(filaActual, filaArriba);
     }
 
-    buscador.addEventListener("input", () => {
-      const term = buscador.value.toLowerCase();
-      Array.from(registroTableBody.querySelectorAll("tr")).forEach((row) => {
-        const lugar = row.cells[1].textContent.toLowerCase();
-        const medidores = row.cells[2].textContent.toLowerCase();
-        
-        row.style.display = lugar.includes(term) || medidores.includes(term) ? "" : "none";
+    async function moverAbajo(id) {
+      const filaActual = document.querySelector(`tr[data-id="${id}"]`);
+      const ordenActual = parseInt(filaActual.getAttribute("data-orden"));
+
+      const filaAbajo = document.querySelector(`tr[data-orden="${ordenActual + 1}"]`);
+      if (!filaAbajo) return;
+
+      await intercambiarPosiciones(filaActual, filaAbajo);
+    }
+
+    async function intercambiarPosiciones(fila1, fila2) {
+      const orden1 = parseInt(fila1.getAttribute("data-orden"));
+      const orden2 = parseInt(fila2.getAttribute("data-orden"));
+
+      const id1 = fila1.getAttribute("data-id");
+      const id2 = fila2.getAttribute("data-id");
+
+      fila1.setAttribute("data-orden", orden2);
+      fila2.setAttribute("data-orden", orden1);
+
+      registroTableBody.insertBefore(fila2, fila1);
+
+      const registroRef1 = doc(db, "consumoRondas", id1); 
+      const registroRef2 = doc(db, "consumoRondas", id2);
+
+      await updateDoc(registroRef1, { orden: orden2 });
+      await updateDoc(registroRef2, { orden: orden1 });
+    }
+
+    buscador.addEventListener("input", function() {
+      const valor = this.value.toLowerCase();
+      const filas = registroTableBody.getElementsByTagName("tr");
+
+      Array.from(filas).forEach(fila => {
+        const textoFila = fila.innerText.toLowerCase();
+        fila.style.display = textoFila.includes(valor) ? "" : "none";
       });
     });
 
