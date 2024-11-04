@@ -166,7 +166,7 @@
 <div id="fileContainer" class="list-view"></div>
 
 <!-- Botón de subir archivo -->
-<a href="subir-archivos.html" id="uploadButton" title="Subir Archivo">
+<a href="Villa-subir-archivos.html" id="uploadButton" title="Subir Archivo">
     <i class="fas fa-upload"></i>
 </a>
 
@@ -315,47 +315,6 @@
             // Ctrl+Shift+J (consola)
             if (e.ctrlKey && e.shiftKey && e.key === 'J') {
                 e.preventDefault();
-            }
-        });
-    </script>
-
-
-
-
-
-<!-- Accesos Directos -->
-
-
-    <script>
-        document.addEventListener('keydown', function(event) {
-            // Ctrl + A: Ir a archivos.html
-            if (event.ctrlKey && event.key === 'a') {
-                event.preventDefault();
-                window.location.href = 'archivos.html';
-            }
-            
-            // Ctrl + N: Ir a Negocio.html
-            if (event.ctrlKey && event.key === 'n') {
-                event.preventDefault();
-                window.location.href = 'Negocio.html';
-            }
-            
-            // Ctrl + P: Ir a Producto.html
-            if (event.ctrlKey && event.key === 'p') {
-                event.preventDefault();
-                window.location.href = 'Producto.html';
-            }
-            
-            // Ctrl + S: Ir a soporte.html
-            if (event.ctrlKey && event.key === 's') {
-                event.preventDefault();
-                window.location.href = 'soporte.html';
-            }
-            
-            // Ctrl + Alt + C: Ir a permisos.html
-            if (event.ctrlKey && event.altKey && event.key === 'c') {
-                event.preventDefault();
-                window.location.href = 'permisos.html';
             }
         });
     </script>
