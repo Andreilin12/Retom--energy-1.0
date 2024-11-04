@@ -1,1 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿Qué consumo podemos mostrarle?</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2c3e50;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            font-size: 2rem;
+            text-align: center;
+            animation: fadeIn 2s;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .icon-card {
+            background-color: #2c3e50;
+            border-radius: 20px;
+            padding: 20px;
+            width: 150px;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .icon-card:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .icon {
+            font-size: 3rem;
+            color: #16e086;
+            margin-bottom: 10px;
+            animation: iconAppear 1.5s;
+        }
+
+        a, .p {
+            font-size: 1rem;
+            color: #fff;
+            text-decoration: none; /* Asegúrate de que no tenga subrayado */
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 1; transform: translateY(0); } 
+        }
+
+        @keyframes iconAppear { 
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Responsividad */
+        @media (min-width: 768px) {
+            .icon-card {
+                width: 180px;
+                height: 180px;
+            }
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .icon-card {
+                width: 200px;
+                height: 200px;
+            }
+            h1 {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>¿Qué consumo podemos mostrarle?</h1>
+    <div class="container">
+        <a href="ocean-view.html" class="link">
+        <div class="icon-card">
+            <i class="fa-solid fa-building icon"></i>
+            <p>Apartamentos</p>
+        </div>
+        <a href="villas.html" class="link">
+        <div class="icon-card">
+            <i class="fa-solid fa-house icon"></i>
+            <p>Villas</p>
+        </div>
+    </div>
+</body>
+</html>
 
