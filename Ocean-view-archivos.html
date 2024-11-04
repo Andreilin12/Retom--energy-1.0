@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean view Archivos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        #searchContainer {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #searchInput, #dateInput {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #viewToggleButton {
+            padding: 10px 15px;
+            background-color: #16a085;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #viewToggleButton:hover {
+            background-color: #45a049;
+        }
+        #fileContainer {
+            display: grid;
+            gap: 15px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .file-item {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .file-item:hover {
+            transform: scale(1.02);
+        }
+        .file-icon img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .file-icon i {
+            font-size: 50px;
+            color: #16a085;
+        }
+        .file-info {
+            flex-grow: 1;
+            padding: 0 15px;
+        }
+        .file-info h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .file-info p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .list-view .file-item {
+            flex-direction: row;
+        }
+        .mosaic-view .file-item {
+            flex-direction: column;
+            align-items: center;
+        }
+        #fileContainer.mosaic-view {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+        #uploadButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #16a085;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #uploadButton:hover {
+            background-color: #45a049;
+        }
+
+   /* Desactivar la selección de texto y el efecto de arrastre en todos los elementos */
+        * {
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* estándar */
+            -webkit-user-drag: none; /* Safari */
+            -khtml-user-drag: none; /* Konqueror HTML */
+            -moz-user-drag: none; /* Firefox */
+            -o-user-drag: none; /* Opera */
+            user-drag: none; /* estándar */
+        }
+        .back-button {
+            position: fixed;
+            top: 10px; /* Distancia desde la parte superior */
+            left: 10px; /* Distancia desde el borde izquierdo */
+            background-color: #16a085; /* Color de fondo */
+            color: #fff; /* Color del texto y del icono */
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s; /* Transición suave para el color de fondo */
+            z-index: 1000; /* Asegura que el botón esté sobre otros elementos */
+        }
+        .back-button i {
+            margin-right: 8px; /* Espacio entre el icono y el texto */
+        }
+        .back-button:hover {
+            background-color: #2c2e50; /* Color de fondo al pasar el ratón */
+        }
+    </style>
+</head>
+<body>
+
+    <button class="back-button" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i> Volver
+    </button>  
+
+<div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="Buscar por nombre">
+    <input type="date" id="dateInput" placeholder="Buscar por fecha">
+</div>
+
+<button id="viewToggleButton">
+    <i class="fas fa-th-large"></i> Cambiar vista
+</button>
+
+<div id="fileContainer" class="list-view"></div>
+
+<!-- Botón de subir archivo -->
+<a href="Ocean-view-Subir-Archivos.html" id="uploadButton" title="Subir Archivo">
+    <i class="fas fa-upload"></i>
+</a>
+
+<!-- Firebase -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+      authDomain: "energycontador-20e7d.firebaseapp.com",
+      databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+      projectId: "energycontador-20e7d",
+      storageBucket: "energycontador-20e7d.appspot.com",
+      messagingSenderId: "216700307706",
+      appId: "1:216700307706:web:dedc278ff696be60662143"
+    };
+
+    const app = initializeApp(firebaseConfig); 
+    const db = getFirestore(app);
+
+    async function fetchFiles() {
+        const querySnapshot = await getDocs(collection(db, "Oceanviewarchivos")); 
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+
+    function displayFiles(files) {
+        const fileContainer = document.getElementById("fileContainer");
+        fileContainer.innerHTML = "";
+
+        files.forEach(fileData => {
+            const fileElement = document.createElement("div");
+            fileElement.classList.add("file-item");
+            fileElement.addEventListener("click", () => {
+                window.open(fileData.url, "_blank");
+            });
+
+            const fileIcon = document.createElement("div");
+            fileIcon.classList.add("file-icon");
+            if (fileData.tipo.startsWith("image/")) {
+                const img = document.createElement("img");
+                img.src = fileData.url;
+                fileIcon.appendChild(img);
+            } else if (fileData.tipo === "application/pdf") {
+                fileIcon.innerHTML = '<i class="fas fa-file-pdf"></i>';
+            } else if (fileData.tipo.includes("word")) {
+                fileIcon.innerHTML = '<i class="fas fa-file-word"></i>';
+            } else if (fileData.tipo.includes("excel")) {
+                fileIcon.innerHTML = '<i class="fas fa-file-excel"></i>';
+            } else {
+                fileIcon.innerHTML = '<i class="fas fa-file"></i>';
+            }
+
+            const fileInfo = document.createElement("div");
+            fileInfo.classList.add("file-info");
+            const uploadDate = new Date(fileData.fechaSubida.seconds * 1000).toLocaleString();
+            fileInfo.innerHTML = `<h3>${fileData.nombre}</h3><p>Tipo: ${fileData.tipo}</p><p>Subido: ${uploadDate}</p>`;
+
+            fileElement.appendChild(fileIcon);
+            fileElement.appendChild(fileInfo);
+
+            fileContainer.appendChild(fileElement);
+        });
+    }
+
+    async function filterFiles() {
+        const searchInput = document.getElementById("searchInput").value.toLowerCase();
+        const dateInput = document.getElementById("dateInput").value;
+        const allFiles = await fetchFiles();
+
+        const filteredFiles = allFiles.filter(file => {
+            const fileNameMatch = file.nombre.toLowerCase().includes(searchInput);
+            const fileDateMatch = dateInput ? new Date(file.fechaSubida.seconds * 1000).toISOString().split("T")[0] === dateInput : true;
+            return fileNameMatch && fileDateMatch;
+        });
+
+        displayFiles(filteredFiles);
+    }
+
+    document.getElementById("searchInput").addEventListener("input", filterFiles);
+    document.getElementById("dateInput").addEventListener("change", filterFiles);
+
+    document.getElementById("viewToggleButton").addEventListener("click", () => {
+        const fileContainer = document.getElementById("fileContainer");
+        const isListView = fileContainer.classList.contains("list-view");
+
+        if (isListView) {
+            fileContainer.classList.remove("list-view");
+            fileContainer.classList.add("mosaic-view");
+            document.getElementById("viewToggleButton").innerHTML = '<i class="fas fa-list"></i> Cambiar a vista de lista';
+        } else {
+            fileContainer.classList.remove("mosaic-view");
+            fileContainer.classList.add("list-view");
+            document.getElementById("viewToggleButton").innerHTML = '<i class="fas fa-th-large"></i> Cambiar a vista de mosaico';
+        }
+    });
+
+    filterFiles();
+</script>
+
+</body>
+</html>
+
+
+
+
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script>
+    function goBack() {
+        window.location.href = 'index.html';
+    }
+</script>
+
+
+
+
+
+     
+
+
+  <!-- BLOQUEO DE CLIC DERECHO, F12 ETC. -->
+
+  <script>
+        // Bloquear el clic derecho
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // Bloquear teclas específicas (F12, Ctrl+Shift+I, Ctrl+U)
+        document.addEventListener('keydown', function(e) {
+            // F12
+            if (e.key === "F12") {
+                e.preventDefault();
+            }
+
+            // Ctrl+Shift+I (inspeccionar)
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                e.preventDefault();
+            }
+
+            // Ctrl+U (ver código fuente)
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+            }
+
+            // Ctrl+Shift+J (consola)
+            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+                e.preventDefault();
+            }
+        });
+    </script>
+
+
+
+
+
