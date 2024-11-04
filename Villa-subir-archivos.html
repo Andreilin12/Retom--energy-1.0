@@ -203,11 +203,11 @@
         showLoading(true);
         try {
             for (const file of files) {
-                const storageRef = ref(storage, `ArchivosFacturas/${file.name}`);
+                const storageRef = ref(storage, `villasarchivos/${file.name}`);
                 await uploadBytes(storageRef, file);
                 const downloadURL = await getDownloadURL(storageRef);
 
-                await addDoc(collection(db, "ArchivosFacturas"), {
+                await addDoc(collection(db, "villasarchivos"), {
                     nombre: file.name,
                     tipo: file.type,
                     tamaño: file.size,
@@ -284,6 +284,47 @@
             // Ctrl+Shift+J (consola)
             if (e.ctrlKey && e.shiftKey && e.key === 'J') {
                 e.preventDefault();
+            }
+        });
+    </script>
+
+
+
+
+
+<!-- Accesos Directos -->
+
+
+    <script>
+        document.addEventListener('keydown', function(event) {
+            // Ctrl + A: Ir a archivos.html
+            if (event.ctrlKey && event.key === 'a') {
+                event.preventDefault();
+                window.location.href = 'archivos.html';
+            }
+            
+            // Ctrl + N: Ir a Negocio.html
+            if (event.ctrlKey && event.key === 'n') {
+                event.preventDefault();
+                window.location.href = 'Negocio.html';
+            }
+            
+            // Ctrl + Alt + C: Ir a permisos.html
+            if (event.ctrlKey && event.altKey && event.key === 'p') {
+                event.preventDefault();
+                window.location.href = 'Producto.html';
+            }
+            
+            // Ctrl + S: Ir a soporte.html
+            if (event.ctrlKey && event.key === 's') {
+                event.preventDefault();
+                window.location.href = 'soporte.html';
+            }
+            
+            // Ctrl + Alt + C: Ir a permisos.html
+            if (event.ctrlKey && event.altKey && event.key === 'c') {
+                event.preventDefault();
+                window.location.href = 'permisos.html';
             }
         });
     </script>
