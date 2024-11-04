@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualización de Registros</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+  <style>
+    body { 
+      font-family: 'Poppins', sans-serif; 
+      background-color: #2c3e50; 
+      color: #333; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      margin: 0; 
+      padding: 10px; 
+      box-sizing: border-box;
+    }
+
+    .container { 
+      max-width: 800px; 
+      background-color: #fff; 
+      border-radius: 10px; 
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+      padding: 20px; 
+      margin: 10px; 
+      width: 100%; 
+      box-sizing: border-box;
+      overflow-x: auto; 
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    input[type="search"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    input[type="search"]:focus {
+      outline: none;
+      border-color: #2c3e50;
+    }
+
+    table { 
+      width: 100%; 
+      margin-top: 20px; 
+      border-collapse: collapse; 
+      text-align: left; 
+      table-layout: fixed;
+    }
+
+    th, td { 
+      padding: 8px; 
+      border: 1px solid #ddd;
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+      white-space: normal; 
+      word-wrap: break-word; 
+      font-size: 0.9em; 
+    }
+
+    th { 
+      background-color: #2c3e50; 
+      color: #fff; 
+    }
+
+    .arrow-buttons { 
+      display: flex; 
+      gap: 5px; 
+    }
+
+    .arrow-buttons button { 
+      background: none; 
+      border: none; 
+      cursor: pointer; 
+      color: #888; 
+      font-size: 1.0em; 
+    }
+
+    @media (max-width: 768px) {
+      th, td {
+        padding: 8px 6px; 
+        font-size: 0.8em; 
+      }
+
+      input[type="search"] {
+        font-size: 0.9em; 
+      }
+    }
+
+    * {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
+      user-drag: none;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background-color: #16a085;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s;
+      z-index: 1000;
+    }
+
+    .back-button i {
+      margin-right: 8px;
+    }
+
+    .back-button:hover {
+      background-color: #2c2e50;
+    }
+  </style>
+</head>
+<body>
+      
+  <button class="back-button" onclick="goBack()">
+    <i class="fas fa-arrow-left"></i> Volver
+  </button>  
+  <div class="container">
+    <h2>Registros de Consumo</h2>
+    <input type="search" id="buscador" placeholder="Buscar por Edificio o Número de Medidor">
+    <table id="registroTable">
+      <thead>
+        <tr>
+          <th>Orden</th>
+          <th>Edif. / Apto</th>
+          <th>Número de Medidores</th>
+          <th>Número de Contratos</th>
+          <th>Consumo kWh</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Aquí se mostrarán los registros desde Firebase -->
+      </tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+      authDomain: "energycontador-20e7d.firebaseapp.com",
+      databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+      projectId: "energycontador-20e7d",
+      storageBucket: "energycontador-20e7d.appspot.com",
+      messagingSenderId: "216700307706",
+      appId: "1:216700307706:web:dedc278ff696be60662143"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const registroTableBody = document.querySelector("#registroTable tbody");
+    const buscador = document.getElementById("buscador");
+
+    async function cargarRegistros() {
+      registroTableBody.innerHTML = "";
+      const querySnapshot = await getDocs(collection(db, "villas"));
+      const registros = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      registros.sort((a, b) => (a.orden || 0) - (b.orden || 0));
+
+      registros.forEach((data) => {
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-id", data.id);
+        tr.setAttribute("data-orden", data.orden);
+
+        tr.innerHTML = `
+          <td>
+            <div class="arrow-buttons">
+              <button class="btn-up" data-id="${data.id}">&#9650;</button>
+              <button class="btn-down" data-id="${data.id}">&#9660;</button>
+            </div>
+          </td>
+          <td>${data.lugar}</td>
+          <td>${data.medidores}</td>
+          <td>${data.contratos}</td>
+          <td class="editable" contenteditable="true" data-id="${data.id}" data-campo="consumo">${data.consumo}</td>
+        `;
+
+        registroTableBody.appendChild(tr);
+      });
+
+      document.querySelectorAll(".btn-up").forEach(button => {
+        button.addEventListener("click", () => moverArriba(button.getAttribute("data-id")));
+      });
+      document.querySelectorAll(".btn-down").forEach(button => {
+        button.addEventListener("click", () => moverAbajo(button.getAttribute("data-id")));
+      });
+    }
+
+    registroTableBody.addEventListener("focusout", async (e) => { 
+      if (e.target.classList.contains("editable")) {
+        const id = e.target.getAttribute("data-id");
+        const campo = e.target.getAttribute("data-campo"); 
+        const nuevoValor = e.target.textContent;
+
+        const registroRef = doc(db, "villas", id);
+        const registroDoc = await getDoc(registroRef);
+        const historial = registroDoc.data().historial || []; 
+
+        // Guardar el nuevo valor y actualizar el historial si es el campo de consumo
+        const actualizacion = { [campo]: nuevoValor };
+        if (campo === "consumo") {
+          historial.push({ fecha: new Date().toISOString(), consumo: nuevoValor });
+          actualizacion.historial = historial;
+        }
+
+        await updateDoc(registroRef, actualizacion);
+      }
+    });
+
+    async function moverArriba(id) {
+      const filaActual = document.querySelector(`tr[data-id="${id}"]`);
+      const ordenActual = parseInt(filaActual.getAttribute("data-orden"));
+
+      const filaArriba = document.querySelector(`tr[data-orden="${ordenActual - 1}"]`);
+      if (!filaArriba) return;
+
+      await intercambiarPosiciones(filaActual, filaArriba, ordenActual, ordenActual - 1);
+    }
+
+    async function moverAbajo(id) {
+      const filaActual = document.querySelector(`tr[data-id="${id}"]`);
+      const ordenActual = parseInt(filaActual.getAttribute("data-orden"));
+
+      const filaAbajo = document.querySelector(`tr[data-orden="${ordenActual + 1}"]`);
+      if (!filaAbajo) return;
+
+      await intercambiarPosiciones(filaActual, filaAbajo, ordenActual, ordenActual + 1);
+    }
+
+    async function intercambiarPosiciones(fila1, fila2, orden1, orden2) {
+      const id1 = fila1.getAttribute("data-id");
+      const id2 = fila2.getAttribute("data-id");
+
+      await updateDoc(doc(db, "villas", id1), { orden: orden2 });
+      await updateDoc(doc(db, "villas", id2), { orden: orden1 });
+
+      cargarRegistros();
+    }
+
+    buscador.addEventListener("input", function() {
+      const valorBuscado = buscador.value.toLowerCase();
+      const filas = registroTableBody.getElementsByTagName("tr");
+
+      for (let i = 0; i < filas.length; i++) {
+        const celdaEdificio = filas[i].getElementsByTagName("td")[1];
+        const celdaMedidor = filas[i].getElementsByTagName("td")[2];
+
+        if (celdaEdificio || celdaMedidor) {
+          const textoEdificio = celdaEdificio.textContent.toLowerCase();
+          const textoMedidor = celdaMedidor.textContent.toLowerCase();
+
+          filas[i].style.display = (textoEdificio.indexOf(valorBuscado) > -1 || textoMedidor.indexOf(valorBuscado) > -1) ? "" : "none";
+        }
+      }
+    });
+
+    function goBack() {
+      window.history.back();
+    }
+
+    cargarRegistros();
+  </script>
+</body>
+</html>
+
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
