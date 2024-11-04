@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eliminar medidor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+  <style>
+    body { 
+      font-family: 'Poppins', sans-serif; 
+      background-color: #2c3e50; 
+      color: #333; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      margin: 0; 
+      padding: 10px; 
+      box-sizing: border-box;
+    }
+
+    .container { 
+      max-width: 800px; 
+      background-color: #fff; 
+      border-radius: 10px; 
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+      padding: 20px; 
+      margin: 10px; 
+      width: 100%; 
+      box-sizing: border-box;
+      overflow-x: auto; 
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    input[type="search"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      font-size: 1em;
+      transition: border-color 0.3s;
+    }
+
+    input[type="search"]:focus {
+      outline: none;
+      border-color: #2c3e50;
+    }
+
+    table { 
+      width: 100%; 
+      margin-top: 20px; 
+      border-collapse: collapse; 
+      text-align: left; 
+      table-layout: fixed; 
+    }
+
+    th, td { 
+      padding: 8px; 
+      border: 1px solid #ddd;
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+      white-space: normal; 
+      word-wrap: break-word; 
+      font-size: 0.9em; 
+    }
+
+    th { 
+      background-color: #2c3e50; 
+      color: #fff; 
+    }
+
+    .delete-icon { 
+      cursor: pointer; 
+      color: #e74c3c; 
+      font-size: 1.2em; 
+      transition: color 0.3s; 
+    }
+
+    .delete-icon:hover { 
+      color: #c0392b; 
+    }
+
+    @media (max-width: 768px) {
+      th, td {
+        padding: 8px 6px; 
+        font-size: 0.8em; 
+      }
+
+      input[type="search"] {
+        font-size: 0.9em; 
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Registros de Consumo</h2>
+    <input type="search" id="buscador" placeholder="Buscar por Edificio o Número de Medidor">
+    <table id="registroTable">
+      <thead>
+        <tr>
+          <th>Edif. / Apto</th>
+          <th>Número de Medidores</th>
+          <th>Número de Contratos</th>
+          <th>Consumo kWh</th>
+          <th>Eliminar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Aquí se mostrarán los registros desde Firebase -->
+      </tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+      authDomain: "energycontador-20e7d.firebaseapp.com",
+      databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+      projectId: "energycontador-20e7d",
+      storageBucket: "energycontador-20e7d.appspot.com",
+      messagingSenderId: "216700307706",
+      appId: "1:216700307706:web:dedc278ff696be60662143"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const registroTableBody = document.querySelector("#registroTable tbody");
+    const buscador = document.getElementById("buscador");
+
+    async function cargarRegistros() {
+      registroTableBody.innerHTML = "";
+      const querySnapshot = await getDocs(collection(db, "villas"));
+      const registros = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      registros.forEach((data) => {
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-id", data.id); // Establecer un identificador único a la fila
+
+        tr.innerHTML = `
+          <td>${data.lugar}</td>
+          <td>${data.medidores}</td>
+          <td>${data.contratos}</td>
+          <td>${data.consumo}</td>
+          <td><i class="fas fa-trash delete-icon" data-id="${data.id}"></i></td>
+        `;
+
+        registroTableBody.appendChild(tr);
+      });
+
+      // Agregar eventos para el ícono de eliminar
+      document.querySelectorAll(".delete-icon").forEach(icon => {
+        icon.addEventListener("click", async () => {
+          const id = icon.getAttribute("data-id");
+          await eliminarRegistro(id);
+        });
+      });
+    }
+
+    async function eliminarRegistro(id) {
+      const registroRef = doc(db, "villas", id);
+      await deleteDoc(registroRef); // Eliminar el documento de Firebase
+      cargarRegistros(); // Recargar los registros después de la eliminación
+    }
+
+    buscador.addEventListener("input", function() {
+      const valor = this.value.toLowerCase();
+      const filas = registroTableBody.getElementsByTagName("tr");
+
+      Array.from(filas).forEach(fila => {
+        const textoFila = fila.innerText.toLowerCase();
+        fila.style.display = textoFila.includes(valor) ? "" : "none";
+      });
+    });
+
+    cargarRegistros();
+  </script>
+</body>
+</html> 
