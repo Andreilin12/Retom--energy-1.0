@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Consumo de Electricidad</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #1b263b;
+      color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background-color: #2e3a4e;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      max-width: 400px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #ff7f50;
+    }
+    label, input, button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+    }
+    input, button {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+    }
+    button {
+      background-color: #ff7f50;
+      color: #fff;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #36475a;
+      border-radius: 6px;
+    }
+    .alert {
+      display: none;
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Calculadora de Consumo de Electricidad</h2>
+    <label for="apartmentName">Nombre del Apartamento/Villa</label>
+    <input type="text" id="apartmentName" placeholder="Ejemplo: Apt. 101" required>
+
+    <label for="previousReading">Lectura Anterior (kWh)</label>
+    <input type="number" id="previousReading" placeholder="Ejemplo: 2800" required>
+
+    <label for="currentReading">Lectura Actual (kWh)</label>
+    <input type="number" id="currentReading" placeholder="Ejemplo: 3500" required>
+
+    <label for="ratePerKwh">Tarifa por kWh (USD)</label>
+    <input type="number" id="ratePerKwh" placeholder="Ejemplo: 0.15" step="0.01" required>
+
+    <button onclick="calculateConsumption()">Calcular Consumo y Costo</button>
+
+    <div class="result" id="result" style="display: none;">
+      <p id="consumptionResult"></p>
+      <p id="costResult"></p>
+    </div>
+
+    <div class="alert" id="successAlert">Factura guardada correctamente.</div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+      authDomain: "energycontador-20e7d.firebaseapp.com",
+      databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+      projectId: "energycontador-20e7d",
+      storageBucket: "energycontador-20e7d.appspot.com",
+      messagingSenderId: "216700307706",
+      appId: "1:216700307706:web:dedc278ff696be60662143"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    window.calculateConsumption = function() {
+      const apartmentName = document.getElementById('apartmentName').value.trim();
+      const previousReading = parseFloat(document.getElementById('previousReading').value);
+      const currentReading = parseFloat(document.getElementById('currentReading').value);
+      const ratePerKwh = parseFloat(document.getElementById('ratePerKwh').value);
+
+      if (!apartmentName || isNaN(previousReading) || isNaN(currentReading) || isNaN(ratePerKwh)) {
+        alert("Por favor, complete todos los campos.");
+        return;
+      }
+
+      const consumption = currentReading - previousReading;
+      const cost = consumption * ratePerKwh;
+
+      document.getElementById('consumptionResult').textContent = `Consumo Total: ${consumption} kWh`;
+      document.getElementById('costResult').textContent = `Costo Total: $${cost.toFixed(2)} USD`;
+      document.getElementById('result').style.display = 'block';
+
+      const billData = { 
+        previousReading,
+        currentReading,
+        consumption,
+        cost: cost.toFixed(2),
+        date: new Date().toISOString()
+      };
+
+      set(ref(database, `facturamanual/${apartmentName}/${Date.now()}`), billData)
+        .then(() => {
+          console.log('Factura guardada correctamente.');
+          showSuccessAlert();
+        })
+        .catch(error => console.error('Error al guardar la factura: ', error));
+    };
+
+    function showSuccessAlert() {
+      const alertBox = document.getElementById('successAlert');
+      alertBox.style.display = 'block';
+      setTimeout(() => {
+        alertBox.style.display = 'none';
+      }, 3000); // Ocultar alerta después de 3 segundos
+    }
+  </script>
+</body>
+</html>
