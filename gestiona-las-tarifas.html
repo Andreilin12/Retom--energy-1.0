@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de la tarifas</title>
+    <!-- Estilos futuristas -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #2C3E50;
+            color: #E0E0E0;
+        }
+        h1 {
+            color: #16e086;
+            font-weight: 600;
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 10px rgba(0, 209, 255, 0.4);
+        }
+        #dataForm {
+            display: flex;
+            flex-direction: column;
+            background: #2A2D3E;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+        #dataForm:hover {
+            transform: scale(1.02);
+        }
+        label {
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #16e086;
+        }
+        input {
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+            font-size: 1em;
+            color: #FFFFFF;
+            background-color: #3A3D4F;
+            margin-bottom: 15px;
+            transition: background-color 0.3s ease;
+        }
+        input:focus {
+            background-color: #16e086;
+        }
+        button {
+            padding: 12px;
+            background-color: #16e086;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2c3e50;
+        }
+        #dataDisplay {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #33374C;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            font-size: 1em;
+            text-align: center;
+            color: #E0E0E0;
+            width: 100%;
+            max-width: 350px;
+        }
+        .data-date {
+            font-size: 0.85em;
+            color: #16e086;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+            authDomain: "energycontador-20e7d.firebaseapp.com",
+            projectId: "energycontador-20e7d",
+            storageBucket: "energycontador-20e7d.appspot.com",
+            messagingSenderId: "216700307706",
+            appId: "1:216700307706:web:dedc278ff696be60662143"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const docRef = doc(db, "config", "tarifas"); // Define la ruta correctamente
+
+        async function guardarDato(event) {
+            event.preventDefault();
+            const dataInput = document.getElementById('dataInput').value;
+            try {
+                await setDoc(docRef, {
+                    dato: dataInput,
+                    fecha: new Date()
+                });
+                alert('¡Dato actualizado correctamente en Firebase!');
+                document.getElementById('dataForm').reset();
+            } catch (error) {
+                console.error('Error al actualizar el dato: ', error);
+                alert('Hubo un error al actualizar el dato.');
+            }
+        }
+
+        function mostrarDatoEnTiempoReal() {
+            const dataDisplay = document.getElementById('dataDisplay');
+            onSnapshot(docRef, (doc) => {
+                if (doc.exists()) {
+                    const data = doc.data();
+                    const fecha = data.fecha.toDate ? data.fecha.toDate() : data.fecha;
+                    dataDisplay.innerHTML = `
+                        <strong>${data.dato}</strong>
+                        <div class="data-date">${new Date(fecha).toLocaleString()}</div>
+                    `;
+                } else {
+                    dataDisplay.innerHTML = "No hay datos guardados.";
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('dataForm').addEventListener('submit', guardarDato);
+            mostrarDatoEnTiempoReal();
+        });
+    </script>
+</head>
+<body>
+    <h1>Gestiona tus tarifas</h1>
+    <form id="dataForm">
+        <label for="dataInput">Precios por Kw:</label>
+        <input type="text" id="dataInput" required>
+        <button type="submit">Guardar</button>
+    </form>
+
+    <div id="dataDisplay">Cargando datos...</div>
+</body>
+</html>
