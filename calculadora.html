@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculadora de Consumo de Electricidad</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -26,7 +27,7 @@
     }
     h2 {
       margin-bottom: 20px;
-      color: #ff7f50;
+      color: #16e086;
     }
     label, input, button {
       display: block;
@@ -59,8 +60,95 @@
       border-radius: 5px;
     }
   </style>
+
+    <style>
+    /* Estilos generales */
+    /* Botón flotante */
+    .floating-button {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #4CAF50;
+      color: #fff;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+      text-decoration: none;
+    }
+    .floating-button:hover {
+      transform: scale(1.1);
+      background-color: #45a049;
+    }
+
+    /* Estilo de enlaces ocultos */
+    .links {
+      position: fixed;
+      bottom: 100px;
+      right: 35px;
+      display: none;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .links a {
+      background-color: #4CAF50;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 5px;
+      margin: 5px 0;
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+    .links a:hover {
+      background-color: #45a049;
+    }
+    .links a i {
+      margin-right: 8px;
+    }
+
+    /* Animación de despliegue de enlaces */
+    .show-links .links {
+      display: flex;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    /* Animación de aparición */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+
 </head>
 <body>
+
+   <!-- Botón flotante -->
+<a href="#" class="floating-button" onclick="toggleLinks()">
+  <i class="fas fa-file-invoice"></i>
+</a>
+
+<!-- Enlaces ocultos que aparecen al hacer clic en el botón -->
+<div class="links">
+  <a href="facturas-de-las-calculadora.html"><i class="fas fa-file-invoice"></i> Factura 1</a>
+
+</div>
+
+
   <div class="container">
     <h2>Calculadora de Consumo de Electricidad</h2>
     <label for="apartmentName">Nombre del Apartamento/Villa</label>
@@ -144,5 +232,12 @@
       }, 8000); // Ocultar alerta después de 3 segundos
     }
   </script>
+
+
+    <script>
+  function toggleLinks() {
+    document.body.classList.toggle('show-links');
+  }
+</script>
 </body>
 </html>
