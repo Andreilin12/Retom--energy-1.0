@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas de Consumo de Electricidad</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #2c3e50;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0; 
+        }
+        .container {
+            width: 90%;
+            max-width: 900px;
+            background-color: #34495e;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            color: #fff; 
+        }
+        h2 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .stat-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-around;
+        }
+        .stat-box {
+            background-color: #1abc9c;
+            border-radius: 10px;
+            padding: 15px;
+            flex: 1 1 calc(50% - 20px); /* Dos columnas en pantallas pequeñas */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            color: #fff;
+        }
+        .stat-box h3 {
+            font-size: 20px;
+            margin: 5px 0;
+        }
+        .stat-box p {
+            font-size: 18px;
+        }
+        .chart-container {
+            margin-top: 30px;
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow-x: auto; /* Permite desplazamiento horizontal si es necesario en móviles */
+        }
+        .chart-container canvas {
+            width: 100%; /* Asegura que el gráfico ocupe todo el ancho del contenedor */
+            height: auto; /* Mantiene la relación de aspecto */
+            max-height: 400px; /* Altura máxima para pantallas grandes */
+        }
+
+        /* Ajustes para pantallas grandes */
+        @media (min-width: 768px) {
+            h2 {
+                font-size: 30px;
+            }
+            .stat-box {
+                flex: 1 1 calc(33% - 20px); /* Tres columnas en pantallas grandes */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Estadísticas de Consumo de Electricidad</h2>
+        
+        <!-- Estadísticas -->
+        <div class="stat-container">
+            <div class="stat-box">
+                <h3>Total Consumo</h3>
+                <p id="totalConsumo">0 kWh</p>
+            </div>
+            <div class="stat-box">
+                <h3>Total MWh</h3>
+                <p id="totalMWh">0 MWh</p>
+            </div>
+            <div class="stat-box">
+                <h3>Total a Pagar</h3>
+                <p id="totalPagar">RD$ 0.00</p>
+            </div>
+        </div>
+
+        <!-- Gráfico -->
+        <div class="chart-container">
+            <canvas id="consumoChart"></canvas>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+            authDomain: "energycontador-20e7d.firebaseapp.com",
+            projectId: "energycontador-20e7d",
+            storageBucket: "energycontador-20e7d.appspot.com",
+            messagingSenderId: "216700307706",
+            appId: "1:216700307706:web:dedc278ff696be60662143"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let totalConsumo = 0;
+        let totalMWh = 0;
+        let totalPagar = 0;
+        let fechas = [];
+        let consumos = [];
+        let pagos = [];
+
+        const fechaActual = new Date();
+        const mesActual = fechaActual.getMonth();
+        const anioActual = fechaActual.getFullYear();
+
+        async function cargarDatos() {
+            try {
+                const tarifaRef = doc(db, "config", "tarifas");
+                const tarifaSnapshot = await getDoc(tarifaRef);
+                if (tarifaSnapshot.exists()) {
+                    const tarifaData = tarifaSnapshot.data().dato;
+
+                    const querySnapshot = await getDocs(collection(db, "consumoRondas"));
+                    querySnapshot.forEach((docSnapshot) => {
+                        const data = docSnapshot.data();
+                        const historial = data.historial || [];
+                        historial.forEach((entry) => {
+                            const fecha = new Date(entry.fecha);
+                            const mesRegistro = fecha.getMonth();
+                            const anioRegistro = fecha.getFullYear();
+
+                            if (mesRegistro === mesActual && anioRegistro === anioActual) {
+                                const consumo = parseFloat(entry.consumo);
+                                const pago = consumo * tarifaData;
+
+                                totalConsumo += consumo;
+                                totalMWh += consumo / 1000;
+                                totalPagar += pago;
+
+                                const fechaFormateada = fecha.toLocaleDateString();
+                                if (!fechas.includes(fechaFormateada)) {
+                                    fechas.push(fechaFormateada);
+                                    consumos.push(consumo);
+                                    pagos.push(pago);
+                                }
+                            }
+                        });
+                    });
+
+                    document.getElementById("totalConsumo").textContent = `${totalConsumo.toFixed(2)} kWh`;
+                    document.getElementById("totalMWh").textContent = `${totalMWh.toFixed(2)} MWh`;
+                    document.getElementById("totalPagar").textContent = `RD$ ${totalPagar.toFixed(2)}`;
+                    generarGrafico();
+                } else {
+                    console.warn("No se encontró el documento de tarifa.");
+                }
+            } catch (error) {
+                console.error("Error al cargar los datos:", error);
+            }
+        }
+
+        function generarGrafico() {
+            const ctx = document.getElementById("consumoChart").getContext("2d");
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: fechas,
+                    datasets: [
+                        {
+                            label: 'Consumo kWh',
+                            data: consumos,
+                            backgroundColor: '#16a085',
+                            borderColor: '#16a085',
+                            borderWidth: 1,
+                        },
+                        {
+                            label: 'Total a Pagar (RD$)',
+                            data: pagos,
+                            backgroundColor: '#e74c3c',
+                            borderColor: '#e74c3c',
+                            borderWidth: 1,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", cargarDatos);
+    </script>
+</body>
+</html>
