@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumo de Electricidad</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 850px;
+            background: #162447;
+            border-radius: 12px;
+            padding: 20px 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+        .tarifa-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #1f4068;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #e0e0e0;
+            font-weight: bold;
+        }
+        h2 {
+            text-align: center;
+            color: #e0e0e0;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: 1.5px;
+        }
+        .accordion {
+            background-color: #1b1b2f;
+            color: #e0e0e0;
+            padding: 12px 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            text-align: left;
+            outline: none;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .accordion:hover {
+            background-color: #1f4068;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+        .panel {
+            display: none;
+            padding: 15px;
+            background-color: #0f3460;
+            margin-top: 8px;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 16px;
+        }
+        .table-container {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #e0e0e0;
+            background-color: #1b1b2f;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            text-align: center;
+        }
+        th {
+            background-color: #162447;
+            font-weight: 600;
+        }
+        .total-pagar {
+            font-weight: bold;
+            color: #ffc107;
+        }
+        .accordion:after {
+            content: '\f107';
+            font-family: 'FontAwesome';
+            color: #e0e0e0;
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+        .accordion.active:after {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Consumo de Electricidad</h2>
+        <div id="tarifaInfo" class="tarifa-info"></div>
+        <div id="accordionContainer"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+            authDomain: "energycontador-20e7d.firebaseapp.com",
+            projectId: "energycontador-20e7d",
+            storageBucket: "energycontador-20e7d.appspot.com",
+            messagingSenderId: "216700307706",
+            appId: "1:216700307706:web:dedc278ff696be60662143"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const accordionContainer = document.getElementById("accordionContainer");
+        const tarifaInfo = document.getElementById("tarifaInfo");
+
+        async function cargarTarifa() {
+            try {
+                const tarifaRef = doc(db, "config", "tarifas");
+                const tarifaSnapshot = await getDoc(tarifaRef);
+                if (tarifaSnapshot.exists()) {
+                    const tarifaData = tarifaSnapshot.data().dato;
+                    tarifaInfo.textContent = `Tarifa Actual: RD$ ${tarifaData}`;
+                    return tarifaData;
+                } else {
+                    tarifaInfo.textContent = "Tarifa no disponible";
+                    return 0;
+                }
+            } catch (error) {
+                console.error("Error al cargar tarifa:", error);
+            }
+        }
+
+        async function cargarHistorial(tarifaData) {
+            try {
+                const querySnapshot = await getDocs(collection(db, "consumoRondas"));
+                const historialPorFecha = {};
+
+                querySnapshot.forEach((docSnapshot) => {
+                    const data = docSnapshot.data();
+                    const historial = data.historial || [];
+                    historial.forEach((entry) => {
+                        const fecha = new Date(entry.fecha).toLocaleDateString();
+                        if (!historialPorFecha[fecha]) historialPorFecha[fecha] = [];
+                        historialPorFecha[fecha].push({
+                            id: docSnapshot.id,
+                            lugar: data.lugar,
+                            medidores: data.medidores,
+                            contratos: data.contratos,
+                            consumo: entry.consumo,
+                            fechaModificacion: entry.fecha
+                        });
+                    });
+                });
+
+                for (const fecha in historialPorFecha) {
+                    const button = document.createElement("button");
+                    button.classList.add("accordion");
+                    button.textContent = `Fecha: ${fecha}`;
+                    button.addEventListener("click", () => {
+                        const panel = document.getElementById(`panel-${fecha.replace(/\//g, "-")}`);
+                        panel.style.display = panel.style.display === "block" ? "none" : "block";
+                        button.classList.toggle("active");
+                    });
+                    accordionContainer.appendChild(button);
+
+                    const panel = document.createElement("div");
+                    panel.classList.add("panel");
+                    panel.id = `panel-${fecha.replace(/\//g, "-")}`;
+
+                    const totalKwh = historialPorFecha[fecha].reduce((acc, r) => acc + parseFloat(r.consumo), 0);
+                    const totalMwh = totalKwh / 1000;
+                    const totalAPagar = totalKwh * tarifaData;
+
+                    const tableHtml = `
+                        <div class="table-container">
+                            <table id="table-${fecha.replace(/\//g, "-")}">
+                                <thead>
+                                    <tr>
+                                        <th>Edif. / Apto</th>
+                                        <th>Medidores</th>
+                                        <th>Consumo (kWh)</th>
+                                        <th>MWh</th>
+                                        <th>Hora de revisión</th>
+                                        <th>Total a Pagar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${historialPorFecha[fecha].map((r) => `
+                                        <tr>
+                                            <td>${r.lugar}</td>
+                                            <td>${r.medidores}</td>
+                                            <td>${r.consumo}</td>
+                                            <td>${(parseFloat(r.consumo) / 1000).toFixed(3)}</td>
+                                            <td>${new Date(r.fechaModificacion).toLocaleTimeString()}</td>
+                                            <td class="total-pagar">RD$ ${(parseFloat(r.consumo) * tarifaData).toFixed(2)}</td>
+                                        </tr>
+                                    `).join("")}
+                                </tbody>
+                            </table>
+                            <p>Total Consumo: ${totalKwh.toFixed(2)} kWh (${totalMwh.toFixed(2)} MWh)</p>
+                            <p>Total a Pagar: RD$ ${totalAPagar.toFixed(2)}</p>
+                        </div>
+                    `;
+                    panel.innerHTML = tableHtml;
+                    accordionContainer.appendChild(panel);
+                }
+            } catch (error) {
+                console.error("Error al cargar historial:", error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const tarifaData = await cargarTarifa();
+            await cargarHistorial(tarifaData);
+        });
+    </script>
+</body>
+</html>
