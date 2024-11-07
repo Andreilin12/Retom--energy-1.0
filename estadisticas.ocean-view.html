@@ -16,7 +16,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0; 
+            margin: 0;
         }
         .container {
             width: 90%;
@@ -25,24 +25,52 @@
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            color: #fff; 
+            color: #fff;
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
         }
         h2 {
-            text-align: center;
             font-size: 24px;
-            margin-bottom: 20px;
+            text-align: center;
+            margin: 0;
+        }
+        .btn-enlace {
+            position: absolute;
+            right: 0;
+            color: #16e086;
+            font-size: 24px;
+            text-decoration: none;
+            border: 2px solid #16e086;
+            border-radius: 50%;
+            padding: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-enlace:hover {
+            color: #2c3e50;
+            background-color: #16e086;
+            transform: scale(1.1);
         }
         .stat-container {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             justify-content: space-around;
+            margin-top: 20px;
         }
         .stat-box {
             background-color: #1abc9c;
             border-radius: 10px;
             padding: 15px;
-            flex: 1 1 calc(50% - 20px); /* Dos columnas en pantallas pequeñas */
+            flex: 1 1 calc(50% - 20px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             text-align: center;
             color: #fff;
@@ -60,28 +88,33 @@
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            overflow-x: auto; /* Permite desplazamiento horizontal si es necesario en móviles */
+            overflow-x: auto;
         }
         .chart-container canvas {
-            width: 100%; /* Asegura que el gráfico ocupe todo el ancho del contenedor */
-            height: auto; /* Mantiene la relación de aspecto */
-            max-height: 400px; /* Altura máxima para pantallas grandes */
+            width: 100%;
+            height: auto;
+            max-height: 400px;
         }
 
-        /* Ajustes para pantallas grandes */
         @media (min-width: 768px) {
             h2 {
                 font-size: 30px;
             }
             .stat-box {
-                flex: 1 1 calc(33% - 20px); /* Tres columnas en pantallas grandes */
+                flex: 1 1 calc(33% - 20px);
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Estadísticas de Consumo de Electricidad</h2>
+        <!-- Encabezado con Título y Botón de Icono -->
+        <div class="header">
+            <h2>Ocean View</h2>
+            <a href="https://www.tuenlace.com" class="btn-enlace" target="_blank" title="Ir a Estadísticas">
+                <i class="fas fa-chart-bar"></i>
+            </a>
+        </div>
         
         <!-- Estadísticas -->
         <div class="stat-container">
