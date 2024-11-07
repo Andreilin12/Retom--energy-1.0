@@ -200,7 +200,6 @@
                                 <thead>
                                     <tr>
                                         <th>Edif. / Apto</th>
-                                        <th>Medidores</th>
                                         <th>Consumo (kWh)</th>
                                         <th>MWh</th>
                                         <th>Hora de revisión</th>
@@ -211,7 +210,6 @@
                                     ${historialPorFecha[fecha].map((r) => `
                                         <tr>
                                             <td>${r.lugar}</td>
-                                            <td>${r.medidores}</td>
                                             <td>${r.consumo}</td>
                                             <td>${(parseFloat(r.consumo) / 1000).toFixed(3)}</td>
                                             <td>${new Date(r.fechaModificacion).toLocaleTimeString()}</td>
