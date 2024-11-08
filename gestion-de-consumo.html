@@ -6,6 +6,14 @@
   <title>Visualización de Registros</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+ <!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualización de Registros</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
   <style>
     body { 
@@ -137,13 +145,13 @@
     .back-button:hover {
       background-color: #2c2e50;
     }
+
+
+
   </style>
 </head>
 <body>
-      
-  <button class="back-button" onclick="goBack()">
-    <i class="fas fa-arrow-left"></i> Volver
-  </button>  
+  <button class="back-button" onclick="goBack()"><i class="fas fa-arrow-left"></i> Volver</button>  
   <div class="container">
     <h2>Registros de Consumo</h2>
     <input type="search" id="buscador" placeholder="Buscar por Edificio o Número de Medidor">
@@ -165,12 +173,11 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
       authDomain: "energycontador-20e7d.firebaseapp.com",
-      databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
       projectId: "energycontador-20e7d",
       storageBucket: "energycontador-20e7d.appspot.com",
       messagingSenderId: "216700307706",
@@ -187,18 +194,26 @@
       const querySnapshot = await getDocs(collection(db, "consumoRondas"));
       const registros = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      registros.sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      // Asignar el valor de orden si falta en algún registro
+      let maxOrden = registros.reduce((max, registro) => Math.max(max, registro.orden || 0), 0);
+      for (const registro of registros) {
+        if (!registro.orden && registro.orden !== 0) {
+          registro.orden = ++maxOrden;
+          await updateDoc(doc(db, "consumoRondas", registro.id), { orden: registro.orden });
+        }
+      }
 
-      registros.forEach((data) => {
+      registros.sort((a, b) => a.orden - b.orden);
+
+      registros.forEach((data, index) => {
         const tr = document.createElement("tr");
         tr.setAttribute("data-id", data.id);
         tr.setAttribute("data-orden", data.orden);
-
         tr.innerHTML = `
           <td>
             <div class="arrow-buttons">
-              <button class="btn-up" data-id="${data.id}">&#9650;</button>
-              <button class="btn-down" data-id="${data.id}">&#9660;</button>
+              <button class="btn-up" data-id="${data.id}" ${index === 0 ? '' : ''}>&#9650;</button>
+              <button class="btn-down" data-id="${data.id}" ${index === registros.length - 1 ? '' : ''}>&#9660;</button>
             </div>
           </td>
           <td>${data.lugar}</td>
@@ -206,7 +221,6 @@
           <td>${data.contratos}</td>
           <td class="editable" contenteditable="true" data-id="${data.id}" data-campo="consumo">${data.consumo}</td>
         `;
-
         registroTableBody.appendChild(tr);
       });
 
@@ -228,14 +242,18 @@
         const registroDoc = await getDoc(registroRef);
         const historial = registroDoc.data().historial || []; 
 
-        // Guardar el nuevo valor y actualizar el historial si es el campo de consumo
-        const actualizacion = { [campo]: nuevoValor };
-        if (campo === "consumo") {
-          historial.push({ fecha: new Date().toISOString(), consumo: nuevoValor });
-          actualizacion.historial = historial;
+        const today = new Date();
+        const todayDateString = today.toISOString().split("T")[0];
+        const lastUpdate = historial.length > 0 ? historial[historial.length - 1].fecha.split("T")[0] : null;
+
+        if (lastUpdate === todayDateString) {
+          alert("El consumo ya ha sido modificado hoy. Intente de nuevo mañana.");
+          e.target.textContent = registroDoc.data()[campo]; 
+          return;
         }
 
-        await updateDoc(registroRef, actualizacion);
+        historial.push({ fecha: today.toISOString(), consumo: nuevoValor });
+        await updateDoc(registroRef, { [campo]: nuevoValor, historial });
       }
     });
 
@@ -269,19 +287,17 @@
       cargarRegistros();
     }
 
-    buscador.addEventListener("input", function() {
+    buscador.addEventListener("input", () => {
       const valorBuscado = buscador.value.toLowerCase();
       const filas = registroTableBody.getElementsByTagName("tr");
-
       for (let i = 0; i < filas.length; i++) {
         const celdaEdificio = filas[i].getElementsByTagName("td")[1];
         const celdaMedidor = filas[i].getElementsByTagName("td")[2];
 
-        if (celdaEdificio || celdaMedidor) {
+        if (celdaEdificio && celdaMedidor) {
           const textoEdificio = celdaEdificio.textContent.toLowerCase();
           const textoMedidor = celdaMedidor.textContent.toLowerCase();
-
-          filas[i].style.display = (textoEdificio.indexOf(valorBuscado) > -1 || textoMedidor.indexOf(valorBuscado) > -1) ? "" : "none";
+          filas[i].style.display = textoEdificio.includes(valorBuscado) || textoMedidor.includes(valorBuscado) ? "" : "none";
         }
       }
     });
@@ -294,10 +310,3 @@
   </script>
 </body>
 </html>
-
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script>
-        function goBack() {
-            window.history.back();
-        }
-    </script>
