@@ -164,7 +164,7 @@
 
         async function cargarHistorial(tarifaData) {
             try {
-                const querySnapshot = await getDocs(collection(db, "villas"));
+                const querySnapshot = await getDocs(collection(db, "consumoRondas"));
                 const historialPorFecha = {};
 
                 querySnapshot.forEach((docSnapshot) => {
