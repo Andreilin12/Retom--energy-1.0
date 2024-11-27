@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5f7fa;
+      background-color: #2c3e50;
       color: #333;
       margin: 0;
       padding: 0;
@@ -16,7 +16,7 @@
     .container {
       max-width: 1000px;
       margin: 40px auto;
-      background-color: #ffffff;
+      background-color: #2c3e50;
       border-radius: 10px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
       padding: 30px;
@@ -100,6 +100,7 @@
           <th>Nombre del Apartamento</th>
           <th>Check-In</th>
           <th>Check-Out</th>
+          <th>Lote Check-Up</th> 
           <th>Fecha Check-Up</th>
           <th>Consumo Diario (kWh)</th>
           <th>Número de Medidor</th>
@@ -164,6 +165,7 @@
           <td>${data.apartmentName}</td>
           <td>${data.checkInDate}</td>
           <td>${data.checkOutDate}</td>
+          <td>${data.loteCheckUp}</td>
           <td>${data.likeCheckUp || ''}</td>
           <td>${data.consumos || 0}</td>
           <td>${data.numeroMedidor || ''}</td>
