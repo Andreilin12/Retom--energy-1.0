@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historial de Consumos</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th, table td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    table th {
+      background-color: #3498db;
+      color: white;
+      font-weight: bold;
+    }
+
+    table td {
+      background-color: #f9f9f9;
+    }
+
+    .button {
+      display: inline-block;
+      background-color: #2980b9;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-top: 20px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      background-color: #3498db;
+    }
+
+    .select-reserva {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .select-reserva select {
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid #3498db;
+      border-radius: 6px;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Historial de Consumos</h1>
+
+    <div class="select-reserva">
+      <select id="reservaSelect">
+        <option value="" disabled selected>Selecciona una reserva</option>
+      </select>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha y Hora</th>
+          <th>Nombre del Apartamento</th>
+          <th>Check-In</th>
+          <th>Check-Out</th>
+          <th>Fecha Check-Up</th>
+          <th>Consumo Diario (kWh)</th>
+          <th>Número de Medidor</th>
+          <th>Costo Total (RD$)</th>
+        </tr>
+      </thead>
+      <tbody id="historialTableBody">
+        <!-- Los datos del historial se cargarán aquí -->
+      </tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+      authDomain: "energycontador-20e7d.firebaseapp.com",
+      projectId: "energycontador-20e7d",
+      storageBucket: "energycontador-20e7d.appspot.com",
+      messagingSenderId: "216700307706",
+      appId: "1:216700307706:web:dedc278ff696be60662143"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Cargar la lista de reservas en el selector
+    async function loadReservas() {
+      const reservasSnapshot = await getDocs(collection(db, "reservas"));
+      const reservaSelect = document.getElementById("reservaSelect");
+
+      reservasSnapshot.forEach(docSnap => {
+        const option = document.createElement("option");
+        option.value = docSnap.id;
+        option.textContent = docSnap.data().apartmentName || `Reserva ${docSnap.id}`;
+        reservaSelect.appendChild(option);
+      });
+
+      reservaSelect.addEventListener("change", (e) => {
+        const reservaId = e.target.value;
+        if (reservaId) {
+          loadHistorial(reservaId);
+        }
+      });
+    }
+
+    // Cargar el historial de una reserva específica
+    async function loadHistorial(reservaId) {
+      const historialCollection = collection(db, `reservas/${reservaId}/historial`);
+      const historialSnapshot = await getDocs(historialCollection);
+      const tableBody = document.getElementById("historialTableBody");
+      tableBody.innerHTML = "";
+
+      historialSnapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const row = document.createElement("tr");
+ 
+        row.innerHTML = `
+          <td>${new Date(data.fechaEdicion).toLocaleString()}</td>
+          <td>${data.apartmentName}</td>
+          <td>${data.checkInDate}</td>
+          <td>${data.checkOutDate}</td>
+          <td>${data.likeCheckUp || ''}</td>
+          <td>${data.consumos || 0}</td>
+          <td>${data.numeroMedidor || ''}</td>
+          <td>RD$ ${parseFloat(data.costoTotal || 0).toFixed(2)}</td>
+        `;
+
+        tableBody.appendChild(row);
+      });
+    }
+
+    loadReservas();
+  </script>
+
+</body>
+</html>
