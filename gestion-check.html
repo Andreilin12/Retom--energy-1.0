@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Consumos</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      font-size: 28px;
+      margin-bottom: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th, table td {
+      padding: 12px;
+      text-align: center;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    table th {
+      background-color: #3498db;
+      color: white;
+      font-weight: bold;
+    }
+
+    table td {
+      background-color: #f9f9f9;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .total {
+      font-weight: bold;
+      color: #2ecc71;
+      font-size: 16px;
+    }
+
+    .tarifa-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .tarifa {
+      font-size: 16px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Gestión de Consumos</h1>
+
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Nombre del Apartamento</th>
+          <th>Check-In</th>
+          <th>Check-Out</th>
+          <th>Fecha Check-Up</th>
+          <th>Consumo Diario (kWh)</th>
+          <th>Número de Medidor</th>
+          <th>Costo Total (RD$)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Los datos serán cargados dinámicamente -->
+      </tbody>
+    </table>
+
+    <div class="tarifa-container">
+      <span class="tarifa" id="tarifaDisplay">Tarifa Actual: RD$ 0.00</span>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getFirestore, collection, getDocs, updateDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+      authDomain: "energycontador-20e7d.firebaseapp.com",
+      databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+      projectId: "energycontador-20e7d",
+      storageBucket: "energycontador-20e7d.appspot.com",
+      messagingSenderId: "216700307706",
+      appId: "1:216700307706:web:dedc278ff696be60662143"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let tarifa = 0;
+
+    // Obtener la tarifa de Firebase
+    async function fetchTarifa() {
+      const docRef = doc(db, "configuracion", "tarifa");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        tarifa = docSnap.data().valor;
+        document.getElementById('tarifaDisplay').textContent = `Tarifa Actual: RD$ ${tarifa.toFixed(2)} por kWh`;
+      }
+    }
+
+    // Cargar los datos de las reservas desde Firebase
+    async function loadData() {
+      const querySnapshot = await getDocs(collection(db, "reservas"));
+      const tableBody = document.querySelector("#dataTable tbody");
+      tableBody.innerHTML = "";
+
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const consumos = data.consumos || [];
+        
+        // Calcular el costo total ajustado por tarifa y dividido entre RD$1,000.00
+        const total = consumos.reduce((acc, curr) => acc + (curr * tarifa), 0) / 1000;
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${data.apartmentName}</td>
+          <td>${data.checkInDate}</td>
+          <td>${data.checkOutDate}</td>
+          <td>${data.likeCheckUp || ''}</td>
+          <td>${consumos.join(', ')}</td>
+          <td>${data.numeroMedidor || ''}</td>
+          <td class="total">RD$ ${total.toFixed(2)}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    fetchTarifa();
+    loadData();
+  </script>
+
+</body>
+</html>
