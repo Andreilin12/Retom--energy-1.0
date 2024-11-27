@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asignar Tarifa</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      overflow: hidden;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      font-size: 28px;
+      margin-bottom: 30px;
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      border: 2px solid #3498db;
+      border-radius: 6px;
+      font-size: 16px;
+      width: 100%;
+      text-align: center;
+      margin-top: 10px;
+      transition: all 0.3s ease;
+    }
+
+    input[type="number"]:focus {
+      border-color: #2980b9;
+      background-color: #ffffff;
+    }
+
+    .button {
+      display: inline-block;
+      background-color: #2980b9;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-top: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #3498db;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Asignar Tarifa por Kilovatio</h1>
+    <label for="tarifa">Tarifa por Kilovatio (₱):</label>
+    <input type="number" id="tarifa" placeholder="Ingrese la tarifa por kilovatio" step="0.01">
+
+    <a href="#" class="button" id="guardarTarifa">Guardar Tarifa</a>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+      authDomain: "energycontador-20e7d.firebaseapp.com",
+      databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+      projectId: "energycontador-20e7d",
+      storageBucket: "energycontador-20e7d.appspot.com",
+      messagingSenderId: "216700307706",
+      appId: "1:216700307706:web:dedc278ff696be60662143"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.getElementById("guardarTarifa").addEventListener("click", async () => {
+      const tarifa = document.getElementById("tarifa").value;
+      if (tarifa && !isNaN(tarifa) && tarifa > 0) {
+        // Cambié "configuracion" a "tarifacheckin"
+        await setDoc(doc(db, "tarifacheckin", "tarifa"), {
+          valor: parseFloat(tarifa)
+        });
+        alert("Tarifa guardada correctamente.");
+      } else {
+        alert("Por favor, ingrese una tarifa válida.");
+      }
+    });
+  </script>
+
+</body>
+</html>
