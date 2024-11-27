@@ -44,7 +44,7 @@
     }
 
     table th {
-      background-color: #3498db;
+      background-color: #15a086;
       color: white;
       font-weight: bold;
     }
@@ -105,6 +105,29 @@
       font-weight: bold;
       color: #2c3e50;
     }
+
+/* Estilo para el botón de "Guardar" */
+.editButton {
+  background-color: #15a086; /* Color de fondo verde */
+  color: white; /* Texto en blanco */
+  padding: 8px 16px; /* Espaciado interior */
+  font-size: 14px; /* Tamaño de fuente */
+  border-radius: 5px; /* Bordes redondeados */
+  border: none; /* Sin borde */
+  cursor: pointer; /* Cambio de cursor al pasar sobre el botón */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Efectos al pasar el cursor */
+}
+
+.editButton:hover {
+  background-color: #16e086; /* Color verde más oscuro cuando se pasa el cursor */
+  transform: scale(1.05); /* Efecto de aumento de tamaño al pasar el cursor */
+}
+
+.editButton:active {
+  background-color: #1e7e34; /* Color cuando se presiona el botón */
+  transform: scale(0.98); /* Efecto de reducción de tamaño al presionar */
+}
+
   </style>
 </head>
 <body>
