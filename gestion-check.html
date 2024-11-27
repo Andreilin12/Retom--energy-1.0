@@ -6,78 +6,72 @@
   <title>Gestión de Consumos</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
       margin: 0;
-      padding: 0;
-      background-color: #f5f7fa;
-      color: #333;
+      padding: 20px;
     }
 
     .container {
-      max-width: 900px;
-      margin: 40px auto;
-      background-color: #ffffff;
-      border-radius: 10px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-      padding: 30px;
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
     h1 {
       text-align: center;
-      color: #2c3e50;
-      font-size: 28px;
-      margin-bottom: 30px;
+      color: #333;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      margin: 20px 0;
     }
 
     table th, table td {
-      padding: 12px;
-      text-align: center;
-      border-radius: 8px;
+      padding: 10px;
+      text-align: left;
       border: 1px solid #ddd;
     }
 
     table th {
-      background-color: #3498db;
-      color: white;
-      font-weight: bold;
+      background: #007bff;
+      color: #fff;
     }
 
-    table td {
-      background-color: #f9f9f9;
-      font-size: 14px;
-      color: #333;
+    table td input {
+      width: 100%;
+      padding: 5px;
     }
 
-    .total {
-      font-weight: bold;
-      color: #2ecc71;
-      font-size: 16px;
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background: #007bff;
+      color: #fff;
+      cursor: pointer;
+      margin: 10px 0;
     }
 
-    .tarifa-container {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 20px;
+    button:hover {
+      background: #0056b3;
     }
 
     .tarifa {
-      font-size: 16px;
+      margin-top: 10px;
       font-weight: bold;
-      color: #2c3e50;
     }
   </style>
 </head>
 <body>
-
   <div class="container">
     <h1>Gestión de Consumos</h1>
-
+    <div class="tarifa" id="tarifaDisplay">Tarifa Actual: RD$1,000.00</div>
     <table id="dataTable">
       <thead>
         <tr>
@@ -88,26 +82,31 @@
           <th>Consumo Diario (kWh)</th>
           <th>Número de Medidor</th>
           <th>Costo Total (RD$)</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Los datos serán cargados dinámicamente -->
+        <!-- Las filas se llenarán dinámicamente -->
       </tbody>
     </table>
-
-    <div class="tarifa-container">
-      <span class="tarifa" id="tarifaDisplay">Tarifa Actual: RD$ 0.00</span>
-    </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-    import { getFirestore, collection, getDocs, updateDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+    import { 
+      getFirestore, 
+      collection, 
+      getDocs, 
+      updateDoc, 
+      doc, 
+      getDoc, 
+      addDoc, 
+      Timestamp 
+    } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
       authDomain: "energycontador-20e7d.firebaseapp.com",
-      databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
       projectId: "energycontador-20e7d",
       storageBucket: "energycontador-20e7d.appspot.com",
       messagingSenderId: "216700307706",
@@ -117,19 +116,18 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let tarifa = 0;
+    let tarifa = 1000; // Tarifa por defecto
 
-    // Obtener la tarifa de Firebase
+    // Obtener la tarifa actual desde Firebase
     async function fetchTarifa() {
-      const docRef = doc(db, "configuracion", "tarifa");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        tarifa = docSnap.data().valor;
-        document.getElementById('tarifaDisplay').textContent = `Tarifa Actual: RD$ ${tarifa.toFixed(2)} por kWh`;
+      const tarifaDoc = await getDoc(doc(db, "tarifacheckin", "tarifa"));
+      if (tarifaDoc.exists()) {
+        tarifa = tarifaDoc.data().valor || 1000;
       }
+      document.getElementById('tarifaDisplay').textContent = `Tarifa Actual: RD$${tarifa.toFixed(2)}`;
     }
 
-    // Cargar los datos de las reservas desde Firebase
+    // Cargar datos de Firebase
     async function loadData() {
       const querySnapshot = await getDocs(collection(db, "reservas"));
       const tableBody = document.querySelector("#dataTable tbody");
@@ -137,29 +135,69 @@
 
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        const consumos = data.consumos || [];
-        
-        // Calcular el costo total ajustado por tarifa y dividido entre RD$1,000.00
-        const total = consumos.reduce((acc, curr) => acc + (curr * tarifa), 0) / 1000;
+        const consumoDiario = data.consumos || 0;
+        const numeroMedidor = data.numeroMedidor || "";
+        const costoTotal = (consumoDiario * tarifa) / 1000;
 
         const row = document.createElement("tr");
-
         row.innerHTML = `
-          <td>${data.apartmentName}</td>
-          <td>${data.checkInDate}</td>
-          <td>${data.checkOutDate}</td>
-          <td>${data.likeCheckUp || ''}</td>
-          <td>${consumos.join(', ')}</td>
-          <td>${data.numeroMedidor || ''}</td>
-          <td class="total">RD$ ${total.toFixed(2)}</td>
+          <td>${data.apartmentName || ""}</td>
+          <td>${data.checkInDate || ""}</td>
+          <td>${data.checkOutDate || ""}</td>
+          <td>${data.checkUpDate || ""}</td>
+          <td><input type="number" value="${consumoDiario}" data-id="${docSnap.id}" class="consumoInput"></td>
+          <td><input type="text" value="${numeroMedidor}" data-id="${docSnap.id}" class="medidorInput"></td>
+          <td class="total">RD$${costoTotal.toFixed(2)}</td>
+          <td><button class="saveButton" data-id="${docSnap.id}">Guardar</button></td>
         `;
         tableBody.appendChild(row);
+      });
+
+      // Agregar evento a los botones de guardar
+      document.querySelectorAll(".saveButton").forEach(button => {
+        button.addEventListener("click", async (e) => {
+          const id = e.target.dataset.id;
+          const consumoInput = document.querySelector(`input[data-id="${id}"].consumoInput`);
+          const medidorInput = document.querySelector(`input[data-id="${id}"].medidorInput`);
+          const nuevoConsumo = parseFloat(consumoInput.value);
+          const nuevoMedidor = medidorInput.value;
+
+          if (!isNaN(nuevoConsumo) && nuevoConsumo >= 0) {
+            const currentTime = new Date().toISOString();
+            const docRef = doc(db, "reservas", id);
+
+            const updatedData = {
+              consumos: nuevoConsumo,
+              numeroMedidor: nuevoMedidor || null,
+              costoTotal: (nuevoConsumo * tarifa) / 1000,
+              updatedAt: currentTime,
+            };
+
+            // Guardar el historial de cambios en una colección de historial
+            await addDoc(collection(db, "historial"), {
+              reservaId: id,
+              consumoAnterior: (consumoInput.value),
+              medidorAnterior: (medidorInput.value),
+              consumoNuevo: nuevoConsumo,
+              medidorNuevo: nuevoMedidor || null,
+              costoTotalNuevo: updatedData.costoTotal,
+              fechaCambio: Timestamp.fromDate(new Date()),
+            });
+
+            // Actualizar en Firebase
+            await updateDoc(docRef, updatedData);
+
+            alert("Datos actualizados correctamente.");
+            loadData();
+          } else {
+            alert("Por favor, ingresa un consumo válido.");
+          }
+        });
       });
     }
 
     fetchTarifa();
     loadData();
   </script>
-
 </body>
 </html>
