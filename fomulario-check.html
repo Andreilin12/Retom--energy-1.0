@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Reservas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .container h1 {
+      text-align: center;
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 5px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-submit:hover {
+      background-color: #45a049;
+    }
+
+    .success-message {
+      text-align: center;
+      color: #4CAF50;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Registro de Reservas</h1>
+    <form id="reservaForm">
+      <div class="form-group">
+        <label for="apartmentName">Nombre del Apartamento</label>
+        <input type="text" id="apartmentName" required placeholder="Ejemplo: Apartamento 1">
+      </div>
+      <div class="form-group">
+        <label for="checkInDate">Fecha de Check-In</label>
+        <input type="date" id="checkInDate" required>
+      </div>
+      <div class="form-group">
+        <label for="checkOutDate">Fecha de Check-Out</label>
+        <input type="date" id="checkOutDate" required>
+      </div>
+      <button type="submit" class="btn-submit">Registrar</button>
+    </form>
+    <div id="successMessage" class="success-message" style="display: none;">
+      Reserva registrada con éxito.
+    </div>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script type="module">
+    // Importar funciones necesarias
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+    // Configuración de Firebase
+    const firebaseConfig = {
+    apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+    authDomain: "energycontador-20e7d.firebaseapp.com",
+    databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+    projectId: "energycontador-20e7d",
+    storageBucket: "energycontador-20e7d.appspot.com",
+    messagingSenderId: "216700307706",
+    appId: "1:216700307706:web:dedc278ff696be60662143"
+  };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Manejar el envío del formulario
+    document.getElementById("reservaForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // Obtener valores del formulario
+      const apartmentName = document.getElementById("apartmentName").value;
+      const checkInDate = document.getElementById("checkInDate").value;
+      const checkOutDate = document.getElementById("checkOutDate").value;
+
+      try {
+        // Guardar en Firestore
+        await addDoc(collection(db, "reservas"), {
+          apartmentName,
+          checkInDate,
+          checkOutDate,
+          timestamp: new Date().toISOString()
+        });
+
+        // Mostrar mensaje de éxito
+        document.getElementById("successMessage").style.display = "block";
+
+        // Limpiar formulario
+        document.getElementById("reservaForm").reset();
+      } catch (error) {
+        console.error("Error al registrar la reserva: ", error);
+        alert("Hubo un error al guardar los datos.");
+      }
+    });
+  </script>
+</body>
+</html>
