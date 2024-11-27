@@ -6,72 +6,112 @@
   <title>Gestión de Consumos</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      background-color: #2c3e50;
+      color: #333;
     }
 
     .container {
-      max-width: 1000px;
-      margin: auto;
-      padding: 20px;
-      background: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 9000px;
+      margin: 40px auto;
+      background-color: #2e3c50;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      overflow: hidden;
     }
 
     h1 {
       text-align: center;
-      color: #333;
+      color: #2c3e50;
+      font-size: 28px;
+      margin-bottom: 30px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 20px 0;
+      margin-top: 20px;
     }
 
     table th, table td {
-      padding: 10px;
-      text-align: left;
+      padding: 12px;
+      text-align: center;
+      border-radius: 8px;
       border: 1px solid #ddd;
     }
 
     table th {
-      background: #007bff;
-      color: #fff;
+      background-color: #3498db;
+      color: white;
+      font-weight: bold;
     }
 
-    table td input {
-      width: 100%;
-      padding: 5px;
+    table td {
+      background-color: #f9f9f9;
+      font-size: 14px;
+      color: #333;
     }
 
-    button {
-      padding: 10px 15px;
-      border: none;
-      border-radius: 5px;
-      background: #007bff;
-      color: #fff;
-      cursor: pointer;
-      margin: 10px 0;
+    input[type="date"], input[type="number"], input[type="text"] {
+      padding: 8px;
+      border: 2px solid #3498db;
+      border-radius: 6px;
+      font-size: 14px;
+      background-color: #ecf0f1;
+      width: 150px;
+      text-align: center;
+      margin-top: 5px;
+      transition: all 0.3s ease;
     }
 
-    button:hover {
-      background: #0056b3;
+    input[type="date"]:focus, input[type="number"]:focus, input[type="text"]:focus {
+      border-color: #2980b9;
+      background-color: #ffffff;
+    }
+
+    .total {
+      font-weight: bold;
+      color: #2ecc71;
+      font-size: 16px;
+    }
+
+    .button {
+      display: inline-block;
+      background-color: #2980b9;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-top: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #3498db;
+    }
+
+    .tarifa-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
     }
 
     .tarifa {
-      margin-top: 10px;
+      font-size: 16px;
       font-weight: bold;
+      color: #2c3e50;
     }
   </style>
 </head>
 <body>
+
   <div class="container">
     <h1>Gestión de Consumos</h1>
-    <div class="tarifa" id="tarifaDisplay">Tarifa Actual: RD$1,000.00</div>
+
     <table id="dataTable">
       <thead>
         <tr>
@@ -79,6 +119,7 @@
           <th>Check-In</th>
           <th>Check-Out</th>
           <th>Fecha Check-Up</th>
+          <th>Lote Check-Up</th> <!-- Nueva columna para "lote check up" -->
           <th>Consumo Diario (kWh)</th>
           <th>Número de Medidor</th>
           <th>Costo Total (RD$)</th>
@@ -86,23 +127,18 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Las filas se llenarán dinámicamente -->
+        <!-- Los datos serán cargados dinámicamente -->
       </tbody>
     </table>
+
+    <div class="tarifa-container">
+      <span class="tarifa" id="tarifaDisplay">Tarifa Actual: RD$ 1,000.00</span>
+    </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-    import { 
-      getFirestore, 
-      collection, 
-      getDocs, 
-      updateDoc, 
-      doc, 
-      getDoc, 
-      addDoc, 
-      Timestamp 
-    } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, updateDoc, doc, getDoc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
@@ -116,18 +152,19 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let tarifa = 1000; // Tarifa por defecto
+    let tarifa = 1000; // Valor predeterminado de la tarifa
 
-    // Obtener la tarifa actual desde Firebase
+    // Obtener la tarifa actual desde la colección "tarifacheckin"
     async function fetchTarifa() {
-      const tarifaDoc = await getDoc(doc(db, "tarifacheckin", "tarifa"));
-      if (tarifaDoc.exists()) {
-        tarifa = tarifaDoc.data().valor || 1000;
+      const docRef = doc(db, "tarifacheckin", "tarifa");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        tarifa = docSnap.data().valor;
+        document.getElementById('tarifaDisplay').textContent = `Tarifa Actual: RD$ ${tarifa.toFixed(2)}`;
       }
-      document.getElementById('tarifaDisplay').textContent = `Tarifa Actual: RD$${tarifa.toFixed(2)}`;
     }
 
-    // Cargar datos de Firebase
+    // Cargar datos de la colección "reservas"
     async function loadData() {
       const querySnapshot = await getDocs(collection(db, "reservas"));
       const tableBody = document.querySelector("#dataTable tbody");
@@ -136,66 +173,74 @@
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
         const consumoDiario = data.consumos || 0;
-        const numeroMedidor = data.numeroMedidor || "";
+
+        // Calcular el costo total
         const costoTotal = (consumoDiario * tarifa) / 1000;
 
         const row = document.createElement("tr");
+
         row.innerHTML = `
-          <td>${data.apartmentName || ""}</td>
-          <td>${data.checkInDate || ""}</td>
-          <td>${data.checkOutDate || ""}</td>
-          <td>${data.checkUpDate || ""}</td>
+          <td>${data.apartmentName}</td>
+          <td>${data.checkInDate}</td>
+          <td>${data.checkOutDate}</td>
+          <td>${data.likeCheckUp || ''}</td>
+          <td><input type="date" value="${data.loteCheckUp || ''}" data-id="${docSnap.id}" class="loteCheckUpInput"></td> <!-- Campo lote check-up -->
           <td><input type="number" value="${consumoDiario}" data-id="${docSnap.id}" class="consumoInput"></td>
-          <td><input type="text" value="${numeroMedidor}" data-id="${docSnap.id}" class="medidorInput"></td>
-          <td class="total">RD$${costoTotal.toFixed(2)}</td>
-          <td><button class="saveButton" data-id="${docSnap.id}">Guardar</button></td>
+          <td><input type="text" value="${data.numeroMedidor || ''}" data-id="${docSnap.id}" class="medidorInput"></td>
+          <td class="total">RD$ ${costoTotal.toFixed(2)}</td>
+          <td><button class="editButton" data-id="${docSnap.id}">Guardar</button></td>
         `;
         tableBody.appendChild(row);
       });
 
-      // Agregar evento a los botones de guardar
-      document.querySelectorAll(".saveButton").forEach(button => {
-        button.addEventListener("click", async (e) => {
+      // Agregar eventos para botones de guardar
+      document.querySelectorAll('.editButton').forEach(button => {
+        button.addEventListener('click', async (e) => {
           const id = e.target.dataset.id;
-          const consumoInput = document.querySelector(`input[data-id="${id}"].consumoInput`);
-          const medidorInput = document.querySelector(`input[data-id="${id}"].medidorInput`);
+          const consumoInput = document.querySelector(`.consumoInput[data-id="${id}"]`);
+          const medidorInput = document.querySelector(`.medidorInput[data-id="${id}"]`);
+          const loteCheckUpInput = document.querySelector(`.loteCheckUpInput[data-id="${id}"]`);
           const nuevoConsumo = parseFloat(consumoInput.value);
           const nuevoMedidor = medidorInput.value;
+          const nuevoLoteCheckUp = loteCheckUpInput.value;
 
           if (!isNaN(nuevoConsumo) && nuevoConsumo >= 0) {
-            const currentTime = new Date().toISOString();
+            // Actualizar los datos en Firebase
             const docRef = doc(db, "reservas", id);
+            const docSnap = await getDoc(docRef);
+            const data = docSnap.data();
 
-            const updatedData = {
+            const costoTotal = (nuevoConsumo * tarifa) / 1000;
+            await updateDoc(docRef, {
               consumos: nuevoConsumo,
-              numeroMedidor: nuevoMedidor || null,
-              costoTotal: (nuevoConsumo * tarifa) / 1000,
-              updatedAt: currentTime,
-            };
-
-            // Guardar el historial de cambios en una colección de historial
-            await addDoc(collection(db, "historial"), {
-              reservaId: id,
-              consumoAnterior: (consumoInput.value),
-              medidorAnterior: (medidorInput.value),
-              consumoNuevo: nuevoConsumo,
-              medidorNuevo: nuevoMedidor || null,
-              costoTotalNuevo: updatedData.costoTotal,
-              fechaCambio: Timestamp.fromDate(new Date()),
+              numeroMedidor: nuevoMedidor,
+              loteCheckUp: nuevoLoteCheckUp // Guardar el valor de lote check-up
             });
 
-            // Actualizar en Firebase
-            await updateDoc(docRef, updatedData);
+            // Guardar el historial
+            const historialRef = collection(db, `reservas/${id}/historial`);
+            await addDoc(historialRef, {
+              fechaEdicion: new Date().toISOString(),
+              apartmentName: data.apartmentName,
+              checkInDate: data.checkInDate,
+              checkOutDate: data.checkOutDate,
+              likeCheckUp: data.likeCheckUp || '',
+              loteCheckUp: nuevoLoteCheckUp, // Guardar el lote check-up
+              consumos: nuevoConsumo,
+              numeroMedidor: nuevoMedidor,
+              costoTotal: costoTotal.toFixed(2)
+            });
 
-            alert("Datos actualizados correctamente.");
+            alert('Datos actualizados y guardados en historial');
             loadData();
           } else {
-            alert("Por favor, ingresa un consumo válido.");
+            alert("Por favor, ingrese un valor de consumo válido.");
           }
         });
       });
     }
 
+    // Ejecutar funciones al cargar la página
     fetchTarifa();
     loadData();
   </script>
