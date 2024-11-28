@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Historial de Consumos</title>
+  <title>Consumos diarios.Ocean View</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
@@ -83,7 +83,7 @@
 </head>
 <body>
 <div class="container">
-  <h1>Historial de Consumos</h1>
+  <h1>Consumos diarios, Ocean View</h1>
   <div class="no-print">
     <select id="reservaSelect" class="button">
       <option value="" disabled selected>Selecciona una reserva</option>
@@ -206,7 +206,7 @@
     const pdf = new jsPDF();
 
     pdf.setFontSize(14);
-    pdf.text("Historial Específico", 10, 10);
+    pdf.text("Consumos por Check in, Ocean View", 10, 10);
 
     const headers = ["Fecha y Hora", "Apartamento", "Check-In", "Check-Out", "Lote Check-Up", "Consumo (kWh)", "Medidor", "Costo (RD$)"];
     const tableData = [];
@@ -223,7 +223,7 @@
       theme: "grid",
     });
 
-    pdf.save("reserva-especifica.pdf");
+    pdf.save("Consumo por Check in.pdf");
   });
 
   loadReservas();
