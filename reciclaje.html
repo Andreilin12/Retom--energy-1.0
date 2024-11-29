@@ -3,7 +3,7 @@
 <head> 
   <meta charset="UTF-8"> 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reciclaje</title>
+  <title>reciclaje.retom.el</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
@@ -85,7 +85,7 @@
 </head>
 <body>
 <div class="container">
-  <h1>Reciclaje<h1>
+  <h1>Reciclaje</h1>
   <div class="no-print">
     <select id="reservaSelect" class="button">
       <option value="" disabled selected>Selecciona una reserva</option>
@@ -148,11 +148,11 @@
   async function loadHistorialReciclaje(reservaId) {
     const recicladoCollection = collection(db, `reciclerhistorial/${reservaId}/datos`);
     const recicladoSnapshot = await getDocs(recicladoCollection);
-    const tableBody = document.getElementById("historialTableBody");
+    const tableBody = document.getElementById("historialTableBody"); 
     tableBody.innerHTML = "";
-
-    recicladoSnapshot.forEach(docSnap => {
-      const data = docSnap.data();
+ 
+    recicladoSnapshot.forEach(docSnap => { 
+      const data = docSnap.data();  
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${new Date(data.fechaEdicion).toLocaleString()}</td>
@@ -172,4 +172,3 @@
 </script>
 </body>
 </html>
-
