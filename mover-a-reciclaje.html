@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es"> 
+<head> 
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consumos diarios.Ocean View</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <style>
+    /* Estilos generales */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #2c3e50;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      padding: 20px 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th, table td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    table th {
+      background-color: #2c3e50;
+      color: white;
+    }
+
+    table td {
+      background-color: #f9f9f9;
+    }
+
+    .button {
+      background-color: #15a086;
+      color: white;
+      padding: 10px 15px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      margin-top: 20px;
+    }
+
+    .button:hover {
+      background-color: #2c3e50;
+    }
+
+    /* Estilo para la selección de la reserva */
+    #reservaSelect {
+      margin: 10px;
+      padding: 8px;
+    }
+
+    @media print {
+      .no-print {
+        display: none;
+      }
+    }
+
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Consumos diarios, Ocean View</h1>
+  <div class="no-print">
+    <select id="reservaSelect" class="button">
+      <option value="" disabled selected>Selecciona una reserva</option>
+    </select>
+    <button id="btnMoveToRecycled" class="button">Mover a Reciclaje</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha y Hora</th>
+        <th>Nombre del Apartamento</th>
+        <th>Check-In</th>
+        <th>Check-Out</th>
+        <th>Lote Check-Up</th>
+        <th>Consumo Diario (kWh)</th>
+        <th>Número de Medidor</th>
+        <th>Costo Total (RD$)</th>
+      </tr>
+    </thead>
+    <tbody id="historialTableBody"></tbody>
+  </table>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+    authDomain: "energycontador-20e7d.firebaseapp.com",
+    projectId: "energycontador-20e7d",
+    storageBucket: "energycontador-20e7d.appspot.com",
+    messagingSenderId: "216700307706",
+    appId: "1:216700307706:web:dedc278ff696be60662143"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Cargar las reservas en el selector
+  async function loadReservas() {
+    const reservasSnapshot = await getDocs(collection(db, "reservas"));
+    const reservaSelect = document.getElementById("reservaSelect");
+
+    reservasSnapshot.forEach(docSnap => {
+      const option = document.createElement("option");
+      option.value = docSnap.id;
+      option.textContent = docSnap.data().apartmentName || `Reserva ${docSnap.id}`;
+      reservaSelect.appendChild(option);
+    });
+
+    // Cargar el historial cuando se selecciona una reserva
+    reservaSelect.addEventListener("change", (e) => {
+      const reservaId = e.target.value;
+      if (reservaId) {
+        loadHistorial(reservaId);
+      }
+    });
+  }
+
+  // Cargar el historial de la reserva seleccionada
+  async function loadHistorial(reservaId) {
+    const historialCollection = collection(db, `reservas/${reservaId}/historial`);
+    const historialSnapshot = await getDocs(historialCollection);
+    const tableBody = document.getElementById("historialTableBody");
+    tableBody.innerHTML = "";
+
+    historialSnapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${new Date(data.fechaEdicion).toLocaleString()}</td>
+        <td>${data.apartmentName}</td>
+        <td>${data.checkInDate}</td>
+        <td>${data.checkOutDate}</td>
+        <td>${data.loteCheckUp}</td>
+        <td>${data.consumos || 0}</td>
+        <td>${data.numeroMedidor || ''}</td>
+        <td>RD$ ${parseFloat(data.costoTotal || 0).toFixed(2)}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  // Función para mover los datos seleccionados al historial reciclado
+  async function moveToRecycled(reservaId) {
+    const historialCollection = collection(db, `reservas/${reservaId}/historial`);
+    const historialSnapshot = await getDocs(historialCollection);
+
+    historialSnapshot.forEach(async (docSnap) => {
+      const data = docSnap.data();
+      // Mover a la colección "reciclerhistorial"
+      await setDoc(doc(db, "reciclerhistorial", docSnap.id), data)
+        .then(() => {
+          alert("Reserva movida a reciclaje");
+        })
+        .catch((error) => {
+          console.error("Error al mover la reserva a reciclaje: ", error);
+        });
+      // Eliminar de la colección de historial
+      await deleteDoc(doc(db, `reservas/${reservaId}/historial`, docSnap.id))
+        .then(() => {
+          console.log("Reserva eliminada del historial");
+        })
+        .catch((error) => {
+          console.error("Error al eliminar la reserva del historial: ", error);
+        });
+    });
+  }
+
+  // Evento del botón Mover a Reciclaje
+  document.getElementById("btnMoveToRecycled").addEventListener("click", () => {
+    const reservaId = document.getElementById("reservaSelect").value;
+    if (reservaId) {
+      moveToRecycled(reservaId);
+    } else {
+      alert("Por favor selecciona una reserva.");
+    }
+  });
+
+  loadReservas();
+</script>
+</body>
+</html>
