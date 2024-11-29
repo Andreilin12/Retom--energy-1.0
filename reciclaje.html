@@ -1,1 +1,175 @@
+<!DOCTYPE html>
+<html lang="es"> 
+<head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consumos Diarios - Reciclaje</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"> 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <style>
+    /* Estilos generales */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #2c3e50;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      padding: 20px 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th, table td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    table th {
+      background-color: #2c3e50;
+      color: white;
+    }
+
+    table td {
+      background-color: #f9f9f9;
+    }
+
+    .button {
+      background-color: #15a086;
+      color: white;
+      padding: 10px 15px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      margin-top: 20px;
+    }
+
+    .button:hover {
+      background-color: #2c3e50;
+    }
+
+    /* Estilo para la selección de la reserva */
+    #reservaSelect {
+      margin: 10px;
+      padding: 8px;
+    }
+
+    @media print {
+      .no-print {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Consumos Diarios - Ocean View</h1>
+  <div class="no-print">
+    <select id="reservaSelect" class="button">
+      <option value="" disabled selected>Selecciona una reserva</option>
+    </select>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha y Hora</th>
+        <th>Nombre del Apartamento</th>
+        <th>Check-In</th>
+        <th>Check-Out</th>
+        <th>Lote Check-Up</th>
+        <th>Consumo Diario (kWh)</th>
+        <th>Número de Medidor</th>
+        <th>Costo Total (RD$)</th>
+      </tr>
+    </thead>
+    <tbody id="historialTableBody"></tbody>
+  </table>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+    authDomain: "energycontador-20e7d.firebaseapp.com",
+    projectId: "energycontador-20e7d",
+    storageBucket: "energycontador-20e7d.appspot.com",
+    messagingSenderId: "216700307706",
+    appId: "1:216700307706:web:dedc278ff696be60662143"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Función para cargar las reservas
+  async function loadReservas() {
+    const reservasSnapshot = await getDocs(collection(db, "reservas"));
+    const reservaSelect = document.getElementById("reservaSelect");
+
+    reservasSnapshot.forEach(docSnap => {
+      const option = document.createElement("option");
+      option.value = docSnap.id;
+      option.textContent = docSnap.data().apartmentName || `Reserva ${docSnap.id}`;
+      reservaSelect.appendChild(option);
+    });
+
+    reservaSelect.addEventListener("change", (e) => {
+      const reservaId = e.target.value;
+      if (reservaId) {
+        loadHistorialReciclaje(reservaId);
+      }
+    });
+  }
+
+  // Función para cargar los datos reciclados
+  async function loadHistorialReciclaje(reservaId) {
+    const recicladoCollection = collection(db, `reciclerhistorial/${reservaId}/datos`);
+    const recicladoSnapshot = await getDocs(recicladoCollection);
+    const tableBody = document.getElementById("historialTableBody");
+    tableBody.innerHTML = "";
+
+    recicladoSnapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${new Date(data.fechaEdicion).toLocaleString()}</td>
+        <td>${data.apartmentName}</td>
+        <td>${data.checkInDate}</td>
+        <td>${data.checkOutDate}</td>
+        <td>${data.loteCheckUp}</td>
+        <td>${data.consumos || 0}</td>
+        <td>${data.numeroMedidor || ''}</td>
+        <td>RD$ ${parseFloat(data.costoTotal || 0).toFixed(2)}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  loadReservas();
+</script>
+</body>
+</html>
 
