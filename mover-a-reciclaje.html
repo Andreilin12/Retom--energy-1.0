@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es"> 
 <head> 
-  <meta charset="UTF-8">
+  <meta charset="UTF-8"> 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consumos diarios.Ocean View</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -81,7 +81,6 @@
         display: none;
       }
     }
-
   </style>
 </head>
 <body>
@@ -92,6 +91,7 @@
       <option value="" disabled selected>Selecciona una reserva</option>
     </select>
     <button id="btnMoveToRecycled" class="button">Mover a Reciclaje</button>
+    <button id="btnRestoreFromRecycled" class="button">Restaurar del Reciclaje</button>
   </div>
   <table>
     <thead>
@@ -126,7 +126,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Cargar las reservas en el selector
   async function loadReservas() {
     const reservasSnapshot = await getDocs(collection(db, "reservas"));
     const reservaSelect = document.getElementById("reservaSelect");
@@ -138,7 +137,6 @@
       reservaSelect.appendChild(option);
     });
 
-    // Cargar el historial cuando se selecciona una reserva
     reservaSelect.addEventListener("change", (e) => {
       const reservaId = e.target.value;
       if (reservaId) {
@@ -147,7 +145,6 @@
     });
   }
 
-  // Cargar el historial de la reserva seleccionada
   async function loadHistorial(reservaId) {
     const historialCollection = collection(db, `reservas/${reservaId}/historial`);
     const historialSnapshot = await getDocs(historialCollection);
@@ -171,37 +168,43 @@
     });
   }
 
-  // Función para mover los datos seleccionados al historial reciclado
   async function moveToRecycled(reservaId) {
     const historialCollection = collection(db, `reservas/${reservaId}/historial`);
     const historialSnapshot = await getDocs(historialCollection);
 
     historialSnapshot.forEach(async (docSnap) => {
       const data = docSnap.data();
-      // Mover a la colección "reciclerhistorial"
-      await setDoc(doc(db, "reciclerhistorial", docSnap.id), data)
-        .then(() => {
-          alert("Reserva movida a reciclaje");
-        })
-        .catch((error) => {
-          console.error("Error al mover la reserva a reciclaje: ", error);
-        });
-      // Eliminar de la colección de historial
-      await deleteDoc(doc(db, `reservas/${reservaId}/historial`, docSnap.id))
-        .then(() => {
-          console.log("Reserva eliminada del historial");
-        })
-        .catch((error) => {
-          console.error("Error al eliminar la reserva del historial: ", error);
-        });
+      await setDoc(doc(db, `reciclerhistorial/${reservaId}/datos`, docSnap.id), data);
+      await deleteDoc(doc(db, `reservas/${reservaId}/historial`, docSnap.id));
     });
+    alert("Datos movidos a reciclaje.");
   }
 
-  // Evento del botón Mover a Reciclaje
+  async function restoreFromRecycled(reservaId) {
+    const recicladoCollection = collection(db, `reciclerhistorial/${reservaId}/datos`);
+    const recicladoSnapshot = await getDocs(recicladoCollection);
+
+    recicladoSnapshot.forEach(async (docSnap) => {
+      const data = docSnap.data();
+      await setDoc(doc(db, `reservas/${reservaId}/historial`, docSnap.id), data);
+      await deleteDoc(doc(db, `reciclerhistorial/${reservaId}/datos`, docSnap.id));
+    });
+    alert("Datos restaurados a la reserva original.");
+  }
+
   document.getElementById("btnMoveToRecycled").addEventListener("click", () => {
     const reservaId = document.getElementById("reservaSelect").value;
     if (reservaId) {
       moveToRecycled(reservaId);
+    } else {
+      alert("Por favor selecciona una reserva.");
+    }
+  });
+
+  document.getElementById("btnRestoreFromRecycled").addEventListener("click", () => {
+    const reservaId = document.getElementById("reservaSelect").value;
+    if (reservaId) {
+      restoreFromRecycled(reservaId);
     } else {
       alert("Por favor selecciona una reserva.");
     }
