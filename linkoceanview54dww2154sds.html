@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consumo Ocean view</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            margin: 20px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .accordion {
+            margin-top: 10px;
+            cursor: pointer;
+            background-color: #1abc9c;
+            color: #fff;
+            padding: 12px;
+            text-align: left;
+            border: none;
+            outline: none;
+            transition: 0.4s;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .panel {
+            display: none;
+            padding: 0 18px;
+            background-color: #2c3e50;
+            overflow: hidden;
+            border: 1px solid #1abc9c;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: #fff;
+        }
+
+        button {
+            cursor: pointer;
+            margin: 5px;
+            padding: 10px;
+            background-color: #1abc9c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2c3e50;
+        }
+
+        .icon {
+            margin-right: 5px;
+        }
+
+        .divider-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .vertical-divider {
+            border-left: 1px solid #ddd;
+            height: 30px;
+            margin: 0 10px;
+        }
+
+        /* Estilos para dispositivos móviles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                width: 100%;
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            .accordion {
+                font-size: 1em;
+                padding: 10px;
+            }
+
+            th, td {
+                font-size: 0.9em;
+                padding: 6px;
+            }
+
+            button {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+        }
+        
+        .icon {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #333;
+        }
+        .config-title {
+            flex: 1; /* Para ocupar el espacio restante */
+            font-size: 18px;
+        }
+        a {
+            text-decoration: none;
+            color: #333;
+            }
+            
+        .config-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #fff;
+            transition: background-color 0.3s;
+        }
+        .config-item:hover {
+            background-color: #1abc9c;
+        }
+        .config-item {
+            border-bottom: none; /* Eliminar el borde en el último ítem */
+            
+            border-radius: 50px;
+        }
+
+
+
+        .back-button {
+    position: fixed;
+    top: 10px; /* Distancia desde la parte superior */
+    left: 10px; /* Distancia desde el borde izquierdo */
+    background-color: #16a085; /* Color de fondo */
+    color: #fff; /* Color del texto y del icono */
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition:background-color 0.3s; /* Transición suave para el color de fondo */
+    z-index: 1000; /* Asegura que el botón esté sobre otros elementos */
+}
+
+.back-button i {
+    margin-right: 8px; /* Espacio entre el icono y el texto */
+}
+
+.back-button:hover {
+    background-color: #2c2e50; /* Color de fondo al pasar el ratón */
+}
+        
+    </style>
+
+</head>
+<body>
+  <button class="back-button" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i> Volver
+    </button>
+
+  <div class="container">
+    <h2>Consumos de Ocean view</h2>
+    <div id="accordionContainer">
+      <!-- Sección para carpetas de fechas -->
+    </div>
+    <p style="text-align: center; margin-top: 15px;">
+      
+        
+    <div class="config-item">
+        <i class="fas fa-tools icon"></i>
+        <a href="gestion-de-consumo.html" class="config-title">Gestionar Contadores</a>
+    </div>
+    </div>
+    </p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+    authDomain: "energycontador-20e7d.firebaseapp.com",
+    databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+    projectId: "energycontador-20e7d",
+    storageBucket: "energycontador-20e7d.appspot.com",
+    messagingSenderId: "216700307706",
+    appId: "1:216700307706:web:dedc278ff696be60662143"
+  };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const accordionContainer = document.getElementById("accordionContainer");
+
+    async function cargarHistorial() {
+      const querySnapshot = await getDocs(collection(db, "consumoRondas"));
+      const historialPorFecha = {};
+
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
+        const historial = data.historial || [];
+
+        historial.forEach((entry) => {
+          const fecha = new Date(entry.fecha).toLocaleDateString();
+          if (!historialPorFecha[fecha]) historialPorFecha[fecha] = [];
+          historialPorFecha[fecha].push({ ...data, consumo: entry.consumo, fechaModificacion: entry.fecha });
+        });
+      });
+
+      for (const fecha in historialPorFecha) {
+        const button = document.createElement("button");
+        button.classList.add("accordion");
+        button.textContent = `Fecha: ${fecha}`;
+        button.addEventListener("click", () => {
+          const panel = document.getElementById(`panel-${fecha.replace(/\//g, "-")}`);
+          panel.style.display = panel.style.display === "block" ? "none" : "block"; // Toggle display
+        });
+        accordionContainer.appendChild(button);
+
+        // Crear el panel que se abrirá y cerrará
+        const panel = document.createElement("div");
+        panel.classList.add("panel");
+        panel.id = `panel-${fecha.replace(/\//g, "-")}`; // ID único para cada panel
+        panel.innerHTML = `
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Edif. / Apto</th>
+                  <th>Número de Medidores</th>
+                  <th>Número de Contratos</th>
+                  <th>Consumo Kwh</th>
+                  <th>Hora de revisión</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${historialPorFecha[fecha].map(r => `
+                  <tr>
+                    <td>${r.lugar}</td>
+                    <td>${r.medidores}</td>
+                    <td>${r.contratos}</td>
+                    <td>${r.consumo}</td>
+                    <td>${new Date(r.fechaModificacion).toLocaleTimeString()}</td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+          </div>
+          <div class="divider-container">
+            <button id="excelBtn-${fecha.replace(/\//g, "-")}" onclick="guardarExcel('${fecha.replace(/\//g, "-")}')">
+              <i class="fas fa-file-excel icon"></i>Guardar en Excel
+            </button>
+            <span class="vertical-divider"></span>
+            <button id="printBtn-${fecha.replace(/\//g, "-")}" onclick="imprimir('${fecha.replace(/\//g, "-")}')">
+              <i class="fas fa-print icon"></i>Imprimir
+            </button>
+          </div>
+        `;
+        accordionContainer.appendChild(panel);
+      }
+
+      agregarResizable();
+    }
+
+    function agregarResizable() {
+      const thElements = document.querySelectorAll("th");
+      thElements.forEach(th => {
+        const resizer = document.createElement("div");
+        resizer.classList.add("resizer");
+        th.appendChild(resizer);
+
+        let startX;
+        let startWidth;
+
+        resizer.addEventListener("mousedown", (e) => {
+          startX = e.clientX; 
+          startWidth = th.offsetWidth;
+
+          document.documentElement.addEventListener("mousemove", mouseMoveHandler);
+          document.documentElement.addEventListener("mouseup", mouseUpHandler);
+        });
+
+        function mouseMoveHandler(e) {
+          const newWidth = startWidth + (e.clientX - startX);
+          th.style.width = `${newWidth}px`;
+        }
+
+        function mouseUpHandler() {
+          document.documentElement.removeEventListener("mousemove", mouseMoveHandler);
+          document.documentElement.removeEventListener("mouseup", mouseUpHandler);
+        }
+      });
+    }
+
+    window.guardarExcel = function(fecha) {
+      const panel = document.getElementById(`panel-${fecha}`);
+      const table = panel.querySelector('table');
+
+      // Extraer datos de la tabla
+      const workbook = XLSX.utils.table_to_book(table);
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+      // Agregar la fecha al título de la hoja en una celda
+      const fechaCelda = `A1`;
+      worksheet[fechaCelda] = { v: `Historial de Modificaciones - Fecha: ${fecha}`, t: 's' };
+      XLSX.utils.sheet_add_aoa(worksheet, [[`Historial de Modificaciones - Fecha: ${fecha}`]], { origin: -1 });
+
+      // Guardar el archivo Excel
+      const filename = `historial_${fecha}.xlsx`;
+      XLSX.writeFile(workbook, filename);
+    };
+
+    window.imprimir = function(fecha) {
+      const panel = document.getElementById(`panel-${fecha}`);
+      const table = panel.querySelector('table');
+      const nuevaVentana = window.open('', '_blank');
+      nuevaVentana.document.write(`
+        <html>
+          <head>
+            <title>Imprimir Historial</title>
+            <style>
+              body { font-family: Arial, sans-serif; }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { border: 1px solid #ddd; padding: 8px; }
+              th { background-color: #5a67d8; color: white; }
+            </style>
+          </head>
+          <body>
+            <h2>Historial de Modificaciones - Fecha: ${fecha}</h2>
+            ${table.outerHTML}
+          </body>
+        </html>
+      `);
+      nuevaVentana.document.close();
+      nuevaVentana.print();
+    };
+
+    // Cargar el historial al cargar la página
+    cargarHistorial();
+  </script>
+</body>
+</html> 
+
+
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+
+     
+
+
+
+  <!-- BLOQUEO DE CLIC DERECHO, F12 ETC. -->
+
+  <script>
+        // Bloquear el clic derecho
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // Bloquear teclas específicas (F12, Ctrl+Shift+I, Ctrl+U)
+        document.addEventListener('keydown', function(e) {
+            // F12
+            if (e.key === "F12") {
+                e.preventDefault();
+            }
+
+            // Ctrl+Shift+I (inspeccionar)
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                e.preventDefault();
+            }
+
+            // Ctrl+U (ver código fuente)
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+            }
+
+            // Ctrl+Shift+J (consola)
+            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+                e.preventDefault();
+            }
+        });
+                </script>
+                
+                
+
+ <script>
+    // Verificar si la página ya ha caducado
+    if (localStorage.getItem('pageExpired') === 'true') {
+      window.location.href = "bloqueado.html"; // Si ya ha caducado, redirige a bloqueado.html
+    } else {
+      // Establecer tiempo de expiración de 24 horas (86400000 ms)
+      const expirationTime = 30000;
+
+      // Redirigir a bloqueado.html después de 24 horas
+      setTimeout(function() {
+        localStorage.setItem('pageExpired', 'true'); // Marcar la página como caducada
+        window.location.href = "bloqueado.html"; // Redirigir
+      }, expirationTime);
+    }
+  </script>
+
+  <script>
+    // Deshabilitar la opción de "Atrás" del navegador
+    window.history.forward();
+
+    // Función para evitar retroceder con el botón "Atrás"
+    window.onload = function() {
+      setTimeout(function() {
+        window.history.forward();
+      }, 0);
+    }
+
+    // Prevenir que el usuario use el botón "Atrás" en cualquier momento
+    window.onpopstate = function() {
+      window.history.forward(); 
+    }
+  </script>
