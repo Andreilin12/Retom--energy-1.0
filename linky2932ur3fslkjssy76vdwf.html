@@ -452,14 +452,48 @@
    </script>
                 
 
-<script>
-    // Establecer tiempo de expiración de 30 segundos
-    const expirationTime = 30000; // 30 segundos en milisegundos
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js"></script>
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+      authDomain: "energycontador-20e7d.firebaseapp.com",
+      databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+      projectId: "energycontador-20e7d",
+      storageBucket: "energycontador-20e7d.appspot.com",
+      messagingSenderId: "216700307706",
+      appId: "1:216700307706:web:dedc278ff696be60662143"
+    };
 
-    // Redirigir a msj-caducado.html después de 30 segundos
-    setTimeout(function() {
-      window.location.href = "bloqueado.html"; // Redirige automáticamente
-    }, expirationTime);
+    // Inicializar Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Obtener la hora actual en milisegundos
+    const currentTime = Date.now();
+    const expirationTime = 30000; // 24 horas en milisegundos
+
+    // Guardar el tiempo de acceso en Firebase
+    const userId = 'usuario_1'; // Usar el identificador del usuario (puedes usar UID de Firebase Authentication)
+    const userRef = database.ref('usuarios/' + userId);
+
+    userRef.once('value').then(snapshot => {
+      if (snapshot.exists()) {
+        const lastAccessTime = snapshot.val().lastAccessTime;
+        
+        // Si han pasado más de 24 horas desde el último acceso, redirigir a la página bloqueada
+        if (currentTime - lastAccessTime > expirationTime) {
+          window.location.href = "bloqueado.html"; // Redirige a la página de bloqueado
+        }
+      }
+
+      // Actualizar el tiempo de acceso
+      userRef.set({
+        lastAccessTime: currentTime
+      });
+    });
+
   </script>
 
 
