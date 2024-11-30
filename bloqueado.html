@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso Bloqueado</title>
+  <style>
+    /* Estilos generales para el fondo */
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #2c3e50, #15a086);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* Contenedor principal */
+    .container {
+      text-align: center;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 50px;
+      border-radius: 15px;
+      box-shadow: 0 4px 30px rgba(0, 255, 255, 0.3);
+      width: 90%;
+      max-width: 500px;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      color: #00ffd5;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    p {
+      font-size: 1.2em;
+      margin-bottom: 30px;
+      color: #aaa;
+    }
+
+    a {
+      text-decoration: none;
+      font-size: 1.2em;
+      background: #00ffd5;
+      padding: 12px 25px;
+      color: #111;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+
+    a:hover {
+      background: #00b89c;
+      color: #fff;
+    }
+
+    /* Efecto de animación de la página */
+    .blink {
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50%, 100% {
+        opacity: 0;
+      }
+      25%, 75% {
+        opacity: 1;
+      }
+    }
+
+    /* Animación de la caja */
+    .container {
+      animation: zoomIn 1s ease-in-out;
+    }
+
+    @keyframes zoomIn {
+      0% {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+  </style>
+
+  <script>
+    // Deshabilitar la opción de "Atrás" del navegador
+    window.history.forward();
+
+    // Función para evitar retroceder con el botón "Atrás"
+    window.onload = function() {
+      setTimeout(function() {
+        window.history.forward();
+      }, 0);
+    }
+
+    // Prevenir que el usuario use el botón "Atrás" en cualquier momento
+    window.onpopstate = function() {
+      window.history.forward();
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1 class="blink">Acceso Bloqueado</h1>
+    <p>La sesión ha expirado. No puedes acceder a esta página más.</p>
+  </div>
+</body>
+</html>
