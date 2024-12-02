@@ -158,112 +158,119 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-    import { getFirestore, collection, getDocs, updateDoc, doc, getDoc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+  <<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+  import { getFirestore, collection, getDocs, updateDoc, doc, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
-      authDomain: "energycontador-20e7d.firebaseapp.com",
-      projectId: "energycontador-20e7d",
-      storageBucket: "energycontador-20e7d.appspot.com",
-      messagingSenderId: "216700307706",
-      appId: "1:216700307706:web:dedc278ff696be60662143"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+    authDomain: "energycontador-20e7d.firebaseapp.com",
+    projectId: "energycontador-20e7d",
+    storageBucket: "energycontador-20e7d.appspot.com",
+    messagingSenderId: "216700307706",
+    appId: "1:216700307706:web:dedc278ff696be60662143"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    let tarifa = 1000; // Valor predeterminado de la tarifa
+  let tarifa = 1000; // Valor predeterminado de la tarifa
 
-    // Obtener la tarifa actual desde la colección "tarifacheckin"
-    async function fetchTarifa() {
-      const docRef = doc(db, "tarifacheckin", "tarifa");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        tarifa = docSnap.data().valor;
-        document.getElementById('tarifaDisplay').textContent = `Tarifa Actual: RD$ ${tarifa.toFixed(2)}`;
-      }
+  // Obtener la tarifa actual desde la colección "tarifacheckin"
+  async function fetchTarifa() {
+    const docRef = doc(db, "tarifacheckin", "tarifa");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      tarifa = docSnap.data().valor;
+      document.getElementById('tarifaDisplay').textContent = `Tarifa Actual: RD$ ${tarifa.toFixed(2)}`;
     }
+  }
 
-    // Cargar datos de la colección "reservas"
-    async function loadData() {
-      const querySnapshot = await getDocs(collection(db, "reservas"));
-      const tableBody = document.querySelector("#dataTable tbody");
-      tableBody.innerHTML = "";
+  // Cargar datos de la colección "reservas"
+  async function loadData() {
+    const querySnapshot = await getDocs(collection(db, "reservas"));
+    const tableBody = document.querySelector("#dataTable tbody");
+    tableBody.innerHTML = "";
 
-      querySnapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        const consumoDiario = data.consumos || 0;
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const consumoDiario = data.consumos || 0;
 
-        // Calcular el costo total
-        const costoTotal = (consumoDiario * tarifa) / 1000;
+      // Calcular el costo total
+      const costoTotal = (consumoDiario * tarifa) / 1000;
 
-        const row = document.createElement("tr");
+      const row = document.createElement("tr");
 
-        row.innerHTML = `
-          <td>${data.apartmentName}</td>
-          <td>${data.checkInDate}</td>
-          <td>${data.checkOutDate}</td>
-          <td><input type="date" value="${data.loteCheckUp || ''}" data-id="${docSnap.id}" class="loteCheckUpInput"></td> <!-- Campo lote check-up -->
-          <td><input type="number" value="${consumoDiario}" data-id="${docSnap.id}" class="consumoInput"></td>
-          <td><input type="text" value="${data.numeroMedidor || ''}" data-id="${docSnap.id}" class="medidorInput"></td>
-          <td class="total">RD$ ${costoTotal.toFixed(2)}</td>
-          <td><button class="editButton" data-id="${docSnap.id}">Guardar</button></td>
-        `;
-        tableBody.appendChild(row);
+      row.innerHTML = `
+        <td>${data.apartmentName}</td>
+        <td><input type="date" value="${data.checkInDate || ''}" data-id="${docSnap.id}" class="checkInInput"></td>
+        <td><input type="date" value="${data.checkOutDate || ''}" data-id="${docSnap.id}" class="checkOutInput"></td>
+        <td><input type="date" value="${data.loteCheckUp || ''}" data-id="${docSnap.id}" class="loteCheckUpInput"></td>
+        <td><input type="number" value="${consumoDiario}" data-id="${docSnap.id}" class="consumoInput"></td>
+        <td><input type="text" value="${data.numeroMedidor || ''}" data-id="${docSnap.id}" class="medidorInput"></td>
+        <td class="total">RD$ ${costoTotal.toFixed(2)}</td>
+        <td><button class="editButton" data-id="${docSnap.id}">Guardar</button></td>
+      `;
+      tableBody.appendChild(row);
+    });
+
+    // Agregar eventos para botones de guardar
+    document.querySelectorAll('.editButton').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const id = e.target.dataset.id;
+        const checkInInput = document.querySelector(`.checkInInput[data-id="${id}"]`);
+        const checkOutInput = document.querySelector(`.checkOutInput[data-id="${id}"]`);
+        const consumoInput = document.querySelector(`.consumoInput[data-id="${id}"]`);
+        const medidorInput = document.querySelector(`.medidorInput[data-id="${id}"]`);
+        const loteCheckUpInput = document.querySelector(`.loteCheckUpInput[data-id="${id}"]`);
+
+        const nuevoCheckIn = checkInInput.value;
+        const nuevoCheckOut = checkOutInput.value;
+        const nuevoConsumo = parseFloat(consumoInput.value);
+        const nuevoMedidor = medidorInput.value;
+        const nuevoLoteCheckUp = loteCheckUpInput.value;
+
+        if (!isNaN(nuevoConsumo) && nuevoConsumo >= 0) {
+          // Actualizar los datos en Firebase
+          const docRef = doc(db, "reservas", id);
+          const docSnap = await getDoc(docRef);
+          const data = docSnap.data();
+
+          const costoTotal = (nuevoConsumo * tarifa) / 1000;
+          await updateDoc(docRef, {
+            checkInDate: nuevoCheckIn,
+            checkOutDate: nuevoCheckOut,
+            consumos: nuevoConsumo,
+            numeroMedidor: nuevoMedidor,
+            loteCheckUp: nuevoLoteCheckUp
+          });
+
+          // Guardar el historial
+          const historialRef = collection(db, `reservas/${id}/historial`);
+          await addDoc(historialRef, {
+            fechaEdicion: new Date().toISOString(),
+            apartmentName: data.apartmentName,
+            checkInDate: nuevoCheckIn,
+            checkOutDate: nuevoCheckOut,
+            loteCheckUp: nuevoLoteCheckUp,
+            consumos: nuevoConsumo,
+            numeroMedidor: nuevoMedidor,
+            costoTotal: costoTotal.toFixed(2)
+          });
+
+          alert('Datos actualizados y guardados en historial');
+          loadData();
+        } else {
+          alert("Por favor, ingrese un valor de consumo válido.");
+        }
       });
+    });
+  }
 
-      // Agregar eventos para botones de guardar
-      document.querySelectorAll('.editButton').forEach(button => {
-        button.addEventListener('click', async (e) => {
-          const id = e.target.dataset.id;
-          const consumoInput = document.querySelector(`.consumoInput[data-id="${id}"]`);
-          const medidorInput = document.querySelector(`.medidorInput[data-id="${id}"]`);
-          const loteCheckUpInput = document.querySelector(`.loteCheckUpInput[data-id="${id}"]`);
-          const nuevoConsumo = parseFloat(consumoInput.value);
-          const nuevoMedidor = medidorInput.value;
-          const nuevoLoteCheckUp = loteCheckUpInput.value;
+  // Ejecutar funciones al cargar la página
+  fetchTarifa();
+  loadData();
+</script> 
 
-          if (!isNaN(nuevoConsumo) && nuevoConsumo >= 0) {
-            // Actualizar los datos en Firebase
-            const docRef = doc(db, "reservas", id);
-            const docSnap = await getDoc(docRef);
-            const data = docSnap.data();
-
-            const costoTotal = (nuevoConsumo * tarifa) / 1000;
-            await updateDoc(docRef, {
-              consumos: nuevoConsumo,
-              numeroMedidor: nuevoMedidor,
-              loteCheckUp: nuevoLoteCheckUp // Guardar el valor de lote check-up
-            });
-
-            // Guardar el historial
-            const historialRef = collection(db, `reservas/${id}/historial`);
-            await addDoc(historialRef, {
-              fechaEdicion: new Date().toISOString(),
-              apartmentName: data.apartmentName,
-              checkInDate: data.checkInDate,
-              checkOutDate: data.checkOutDate,
-              likeCheckUp: data.likeCheckUp || '',
-              loteCheckUp: nuevoLoteCheckUp, // Guardar el lote check-up
-              consumos: nuevoConsumo,
-              numeroMedidor: nuevoMedidor,
-              costoTotal: costoTotal.toFixed(2)
-            });
-
-            alert('Datos actualizados y guardados en historial');
-            loadData();
-          } else {
-            alert("Por favor, ingrese un valor de consumo válido.");
-          }
-        });
-      });
-    }
-
-    // Ejecutar funciones al cargar la página
-    fetchTarifa();
-    loadData();
-  </script>
 </body>
 </html>
