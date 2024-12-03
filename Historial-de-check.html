@@ -77,11 +77,14 @@
       margin-top: 20px;
     }
 
-    @media print {
-      .no-print {
-        display: none;
-      }
-    }
+    /* Ocultar todos los botones y elementos flotantes en impresión */
+@media print {
+  .no-print,
+  .button,
+  .floating-button {
+    display: none !important;
+  }
+}
   </style>
 </head>
 <body>
@@ -163,6 +166,8 @@
     historialSnapshot.forEach(docSnap => {
       const data = docSnap.data();
       const row = document.createElement("tr");
+      row.dataset.id = docSnap.id; // Almacena el ID del documento
+      row.dataset.fecha = new Date(data.fechaEdicion).toISOString(); // Fecha como atributo para ordenación
       row.innerHTML = `
         <td>${new Date(data.fechaEdicion).toLocaleString()}</td>
         <td>${data.apartmentName}</td>
@@ -178,23 +183,16 @@
   }
 
   document.getElementById("btnSort").addEventListener("click", () => {
-    const sortOption = document.getElementById("sortOption").value;
     const rows = Array.from(document.querySelectorAll("#historialTableBody tr"));
 
-    if (sortOption === "fecha") {
-      rows.sort((a, b) => {
-        const dateA = new Date(a.cells[0].textContent);
-        const dateB = new Date(b.cells[0].textContent);
-        return dateA - dateB;
-      });
-    } else if (sortOption === "hora") {
-      rows.sort((a, b) => {
-        const timeA = a.cells[0].textContent.split(" ")[1];
-        const timeB = b.cells[0].textContent.split(" ")[1];
-        return timeA.localeCompare(timeB);
-      });
-    }
+    // Ordenar las filas por el atributo `data-fecha`
+    rows.sort((a, b) => {
+      const dateA = new Date(a.dataset.fecha);
+      const dateB = new Date(b.dataset.fecha);
+      return dateA - dateB;
+    });
 
+    // Actualizar la tabla en tiempo real
     const tableBody = document.getElementById("historialTableBody");
     tableBody.innerHTML = "";
     rows.forEach(row => tableBody.appendChild(row));
@@ -231,6 +229,7 @@
 
   loadReservas();
 </script>
+
 </body>
 </html>
 
