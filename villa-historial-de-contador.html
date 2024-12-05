@@ -456,61 +456,102 @@
 
 
 
-  <style>
-    /* Estilos para el botón flotante */
-    .floating-btn {
+  
+
+
+
+
+
+ <style>
+    /* Estilos generales */
+    /* Botón flotante */
+    .floating-button {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: #15a086;
-      color: white;
-      border: none;
-      padding: 15px;
+      bottom: 30px;
+      right: 30px;
+      background-color: #16e086;
+      color: #fff;
       border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
       font-size: 24px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       cursor: pointer;
-      z-index: 1000; /* Asegura que el botón esté por encima de otros elementos */
-      transition: background-color 0.3s ease;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+      text-decoration: none;
+    }
+    .floating-button:hover {
+      transform: scale(1.1);
+      background-color: #2c3e50;
     }
 
-    /* Cambiar el color cuando se pase el mouse sobre el botón */
-    .floating-btn:hover {
-      background-color: #16e068;
+    /* Estilo de enlaces ocultos */
+    .links {
+      position: fixed;
+      bottom: 100px;
+      right: 35px;
+      display: none;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .links a {
+      background-color: #16e086;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 5px;
+      margin: 5px 0;
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+    .links a:hover {
+      background-color: #2c3e50;
+    }
+    .links a i {
+      margin-right: 8px;
     }
 
-    /* Estilo para el ícono dentro del botón */
-    .floating-btn i {
-      pointer-events: none; /* Evitar que el clic sea capturado por el ícono */
+    /* Animación de despliegue de enlaces */
+    .show-links .links {
+      display: flex;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    /* Animación de aparición */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   </style>
-</head>
-<body>
+  
 
-  <!-- Botón flotante con ícono de eliminar como enlace -->
-  <a href="villas-eliminar-consumos.html" class="floating-btn" id="deleteBtn">
-    <i class="fas fa-trash"></i> <!-- Ícono de eliminar (basura) -->
-  </a>
 
-  <script>
-    // Función para el evento de clic del botón flotante (si es necesario agregar funcionalidad)
-    document.getElementById("deleteBtn").addEventListener("click", (event) => {
-      event.preventDefault(); // Evita que el enlace navegue si no se necesita
-      Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta acción eliminará los consumos seleccionados.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Eliminar",
-        cancelButtonText: "Cancelar"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Aquí va la lógica de eliminación de consumos
-          console.log("Eliminar consumos seleccionados");
-          // Luego redirigir a la página si es necesario
-          window.location.href = "url_a_donde_deseas_ir"; // Redirigir al enlace deseado
-        }
-      });
-    });
-  </script>
-</body>
+  <!-- Botón flotante -->
+<a href="#" class="floating-button" onclick="toggleLinks()">
+  <i class="fas fa-check-circle"></i>
+</a>
+
+<!-- Enlaces ocultos que aparecen al hacer clic en el botón -->
+<div class="links">
+  <a href="villas-eliminar-consumos.html"><i class="fa-sharp fa-solid fa-trash"></i> Eliminar consumos</a>
+  
+</div>
+</script>
+
+
+    <script>
+  function toggleLinks() {
+    document.body.classList.toggle('show-links');
+  }
+</script>
