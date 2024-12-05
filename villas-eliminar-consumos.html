@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consumo Ocean View</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            margin: 20px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .accordion {
+            margin-top: 10px;
+            cursor: pointer;
+            background-color: #1abc9c;
+            color: #fff;
+            padding: 12px;
+            text-align: left;
+            border: none;
+            outline: none;
+            transition: 0.4s;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .panel {
+            display: none;
+            padding: 0 18px;
+            background-color: #2c3e50;
+            overflow: hidden;
+            border: 1px solid #1abc9c;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: #fff;
+        }
+
+        button {
+            cursor: pointer;
+            margin: 5px;
+            padding: 10px;
+            background-color: #1abc9c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2c3e50;
+        }
+
+        .icon {
+            margin-right: 5px;
+        }
+
+        .divider-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .vertical-divider {
+            border-left: 1px solid #ddd;
+            height: 30px;
+            margin: 0 10px;
+        }
+
+        /* Estilos para dispositivos móviles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                width: 100%;
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            .accordion {
+                font-size: 1em;
+                padding: 10px;
+            }
+
+            th, td {
+                font-size: 0.9em;
+                padding: 6px;
+            }
+
+            button {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+        }
+        
+        .icon {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #333;
+        }
+        .config-title {
+            flex: 1; /* Para ocupar el espacio restante */
+            font-size: 18px;
+        }
+        a {
+            text-decoration: none;
+            color: #333;
+            }
+            
+        .config-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #fff;
+            transition: background-color 0.3s;
+        }
+        .config-item:hover {
+            background-color: #1abc9c;
+        }
+        .config-item {
+            border-bottom: none; /* Eliminar el borde en el último ítem */
+            
+            border-radius: 50px;
+        }
+
+          /* Desactivar la selección de texto y el efecto de arrastre en todos los elementos */
+* {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE 10+ */
+  user-select: none; /* estándar */
+
+  -webkit-user-drag: none; /* Safari */
+  -khtml-user-drag: none; /* Konqueror HTML */
+  -moz-user-drag: none; /* Firefox */
+  -o-user-drag: none; /* Opera */
+  user-drag: none; /* estándar */
+ }
+
+        .back-button {
+    position: fixed;
+    top: 10px; /* Distancia desde la parte superior */ 
+    left: 10px; /* Distancia desde el borde izquierdo */
+    background-color: #16a085; /* Color de fondo */
+    color: #fff; /* Color del texto y del icono */
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s; /* Transición suave para el color de fondo */
+    z-index: 1000; /* Asegura que el botón esté sobre otros elementos */
+}
+
+.back-button i {
+    margin-right: 8px; /* Espacio entre el icono y el texto */
+}
+
+.back-button:hover {
+    background-color: #2c2e50; /* Color de fondo al pasar el ratón */
+}
+    .eliminar-btn, .eliminar-varios-btn {
+      background-color: red;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .eliminar-btn:hover, .eliminar-varios-btn:hover {
+      background-color: #cc0000;
+    }
+    .eliminar-varios-btn {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Consumos de Ocean View</h2>
+    <div id="accordionContainer">
+      <!-- Las carpetas de fechas se agregarán aquí dinámicamente -->
+    </div>
+    <p style="text-align: center; margin-top: 15px;">
+      <button onclick="location.href='gestion-de-consumo.html'">Gestionar Contadores</button>
+    </p>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getFirestore, collection, getDocs, updateDoc, deleteDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+    authDomain: "energycontador-20e7d.firebaseapp.com",
+    projectId: "energycontador-20e7d",
+    storageBucket: "energycontador-20e7d.appspot.com",
+    messagingSenderId: "216700307706",
+    appId: "1:216700307706:web:dedc278ff696be60662143"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function cargarHistorial() {
+    const querySnapshot = await getDocs(collection(db, "villas"));
+    const historialPorFecha = {};
+
+    querySnapshot.forEach((docSnapshot) => {
+      const data = docSnapshot.data();
+      const historial = data.historial || [];
+
+      historial.forEach((entry) => {
+        const fecha = new Date(entry.fecha).toLocaleDateString();
+        if (!historialPorFecha[fecha]) historialPorFecha[fecha] = [];
+        historialPorFecha[fecha].push({ ...data, id: docSnapshot.id, entry });
+      });
+    });
+
+    const accordionContainer = document.getElementById("accordionContainer");
+    accordionContainer.innerHTML = ""; // Limpia el contenedor
+
+    for (const fecha in historialPorFecha) {
+      const fechaId = fecha.replace(/\//g, "-");
+
+      const button = document.createElement("button");
+      button.classList.add("accordion");
+      button.textContent = `Fecha: ${fecha}`;
+      button.addEventListener("click", () => {
+        const panel = document.getElementById(`panel-${fechaId}`);
+        panel.style.display = panel.style.display === "block" ? "none" : "block";
+      });
+      accordionContainer.appendChild(button);
+
+      const panel = document.createElement("div");
+      panel.classList.add("panel");
+      panel.id = `panel-${fechaId}`;
+      panel.innerHTML = ` 
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="selectAll-${fechaId}"> Seleccionar Todo</th>
+                <th>Edif. / Apto</th>
+                <th>Número de Medidores</th>
+                <th>Número de Contratos</th>
+                <th>Consumo Kwh</th>
+                <th>Hora de revisión</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${historialPorFecha[fecha].map((r) => `
+                <tr>
+                  <td><input type="checkbox" class="select-item" data-doc-id="${r.id}" data-fecha="${r.entry.fecha}" data-consumo="${r.entry.consumo}"></td>
+                  <td>${r.lugar}</td>
+                  <td>${r.medidores}</td>
+                  <td>${r.contratos}</td>
+                  <td>${r.entry.consumo}</td>
+                  <td>${new Date(r.entry.fecha).toLocaleTimeString()}</td>
+                  <td>
+                    <button class="eliminar-btn" 
+                            data-doc-id="${r.id}" 
+                            data-fecha="${r.entry.fecha}" 
+                            data-consumo="${r.entry.consumo}">
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+        <button class="eliminar-varios-btn" id="eliminarVarios-${fechaId}">Eliminar Seleccionados</button>
+      `;
+      accordionContainer.appendChild(panel);
+
+      // Añadir eventos a los botones de eliminar
+      document.querySelectorAll(".eliminar-btn").forEach((btn) => {
+        btn.addEventListener("click", async (event) => {
+          const docId = event.target.getAttribute("data-doc-id");
+          const fecha = event.target.getAttribute("data-fecha");
+          const consumo = event.target.getAttribute("data-consumo");
+          await eliminarConsumo(docId, fecha, consumo);
+        });
+      });
+
+      // Añadir funcionalidad para eliminar varios
+      document.getElementById(`eliminarVarios-${fechaId}`).addEventListener("click", () => {
+        eliminarVariosConsumos(fechaId);
+      });
+
+      // Marcar/deseleccionar todos los checkboxes
+      document.getElementById(`selectAll-${fechaId}`).addEventListener("change", (e) => {
+        const checkboxes = document.querySelectorAll(`#panel-${fechaId} .select-item`);
+        checkboxes.forEach((checkbox) => {
+          checkbox.checked = e.target.checked;
+        });
+      });
+    }
+  }
+
+  async function eliminarConsumo(docId, fecha, consumo) {
+    try {
+      const docRef = doc(db, "villas", docId);
+      const docSnapshot = await getDoc(docRef);
+
+      if (docSnapshot.exists()) {
+        const data = docSnapshot.data();
+        const updatedHistorial = data.historial.filter(
+          (entry) => !(entry.fecha === fecha && entry.consumo === consumo)
+        );
+
+        if (updatedHistorial.length === 0) {
+          await deleteDoc(docRef);
+        } else {
+          await updateDoc(docRef, { historial: updatedHistorial });
+        }
+
+        Swal.fire({
+          title: "Éxito",
+          text: "Consumo eliminado correctamente.",
+          icon: "success",
+          confirmButtonText: "Aceptar"
+        });
+
+        cargarHistorial();
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: "No se encontró el consumo.",
+          icon: "error",
+          confirmButtonText: "Aceptar"
+        });
+      }
+    } catch (error) {
+      console.error("Error al eliminar el consumo:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Hubo un error al eliminar el consumo.",
+        icon: "error",
+        confirmButtonText: "Aceptar"
+      });
+    }
+  }
+
+  async function eliminarVariosConsumos(fechaId) {
+    const selectedItems = document.querySelectorAll(`#panel-${fechaId} .select-item:checked`);
+
+    if (selectedItems.length === 0) {
+      Swal.fire({
+        title: "Error",
+        text: "No has seleccionado ningún consumo para eliminar.",
+        icon: "warning",
+        confirmButtonText: "Aceptar"
+      });
+      return;
+    }
+
+    const consumosAEliminar = [];
+
+    selectedItems.forEach((checkbox) => {
+      consumosAEliminar.push({
+        docId: checkbox.getAttribute("data-doc-id"),
+        fecha: checkbox.getAttribute("data-fecha"),
+        consumo: checkbox.getAttribute("data-consumo"),
+      });
+    });
+
+    try {
+      for (const consumo of consumosAEliminar) {
+        await eliminarConsumo(consumo.docId, consumo.fecha, consumo.consumo);
+      }
+
+      Swal.fire({
+        title: "Éxito",
+        text: "Consumos eliminados correctamente.",
+        icon: "success",
+        confirmButtonText: "Aceptar"
+      });
+    } catch (error) {
+      console.error("Error al eliminar los consumos:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Hubo un error al eliminar los consumos.",
+        icon: "error",
+        confirmButtonText: "Aceptar"
+      });
+    }
+  }
+
+  cargarHistorial();
+</script>
+
+
+</body>
+</html>
