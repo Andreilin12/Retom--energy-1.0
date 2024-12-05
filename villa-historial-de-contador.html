@@ -448,3 +448,69 @@
         });
                 </script>
                 
+
+
+
+
+
+
+
+
+  <style>
+    /* Estilos para el botón flotante */
+    .floating-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #15a086;
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 50%;
+      font-size: 24px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      z-index: 1000; /* Asegura que el botón esté por encima de otros elementos */
+      transition: background-color 0.3s ease;
+    }
+
+    /* Cambiar el color cuando se pase el mouse sobre el botón */
+    .floating-btn:hover {
+      background-color: #16e068;
+    }
+
+    /* Estilo para el ícono dentro del botón */
+    .floating-btn i {
+      pointer-events: none; /* Evitar que el clic sea capturado por el ícono */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Botón flotante con ícono de eliminar como enlace -->
+  <a href="villas-eliminar-consumos.html" class="floating-btn" id="deleteBtn">
+    <i class="fas fa-trash"></i> <!-- Ícono de eliminar (basura) -->
+  </a>
+
+  <script>
+    // Función para el evento de clic del botón flotante (si es necesario agregar funcionalidad)
+    document.getElementById("deleteBtn").addEventListener("click", (event) => {
+      event.preventDefault(); // Evita que el enlace navegue si no se necesita
+      Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción eliminará los consumos seleccionados.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Eliminar",
+        cancelButtonText: "Cancelar"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Aquí va la lógica de eliminación de consumos
+          console.log("Eliminar consumos seleccionados");
+          // Luego redirigir a la página si es necesario
+          window.location.href = "url_a_donde_deseas_ir"; // Redirigir al enlace deseado
+        }
+      });
+    });
+  </script>
+</body>
