@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Avance diarios Ocean View/title>
+  <title>Consumo de las Villas</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -222,7 +222,7 @@
     </button>
 
   <div class="container">
-    <h2>Avance diarios Ocean View</h2>
+    <h2>Consumos de Villa</h2>
     <div id="accordionContainer">
       <!-- Sección para carpetas de fechas -->
     </div>
@@ -242,21 +242,21 @@
   import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
   const firebaseConfig = {
-      apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
-      authDomain: "energycontador-20e7d.firebaseapp.com",
-      databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
-      projectId: "energycontador-20e7d",
-      storageBucket: "energycontador-20e7d.appspot.com",
-      messagingSenderId: "216700307706",
-      appId: "1:216700307706:web:dedc278ff696be60662143"
-    };
+    apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+    authDomain: "energycontador-20e7d.firebaseapp.com",
+    databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+    projectId: "energycontador-20e7d",
+    storageBucket: "energycontador-20e7d.appspot.com",
+    messagingSenderId: "216700307706",
+    appId: "1:216700307706:web:dedc278ff696be60662143"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const accordionContainer = document.getElementById("accordionContainer");
 
   async function cargarHistorial() {
-    const querySnapshot = await getDocs(collection(db, "villas"));
+    const querySnapshot = await getDocs(collection(db, "consumoRondas"));
     const historialPorFecha = {};
 
     querySnapshot.forEach((docSnapshot) => {
@@ -470,10 +470,14 @@
 
 
   <!-- Botón flotante -->
-<a href="reporte-ocean.html" class="floating-button" onclick="toggleLinks()">
+<a href="#" class="floating-button" onclick="toggleLinks()">
   <i class="fa-sharp fa-solid fa-trash"></i>
 </a>
 
+<!-- Enlaces ocultos que aparecen al hacer clic en el botón -->
+<div class="links">
+  <a href="villas-eliminar-consumos.html"><i class="fa-sharp fa-solid fa-trash"></i> Eliminar consumos</a>
+  
 </div>
 </script>
 
