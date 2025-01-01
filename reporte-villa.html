@@ -169,7 +169,7 @@
     const alertMessage = document.getElementById("alertMessage");
 
     async function mostrarConsumoPorDia() {
-      const querySnapshot = await getDocs(collection(db, "consumoRondas"));
+      const querySnapshot = await getDocs(collection(db, "villas"));
       const consumoPorFecha = {};
 
       querySnapshot.forEach((docSnapshot) => {
