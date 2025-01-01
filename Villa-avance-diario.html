@@ -256,7 +256,7 @@
   const accordionContainer = document.getElementById("accordionContainer");
 
   async function cargarHistorial() {
-    const querySnapshot = await getDocs(collection(db, "consumoRondas"));
+    const querySnapshot = await getDocs(collection(db, "villas"));
     const historialPorFecha = {};
 
     querySnapshot.forEach((docSnapshot) => {
