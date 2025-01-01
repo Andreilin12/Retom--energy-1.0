@@ -1,326 +1,489 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reporte de Villas</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+  <title>Consumo de las Villas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #2c3e50;
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      font-size: 20px;
-      text-align: center;
-      color: #fff;
-      margin-bottom: 15px;
-    }
-    .table-container {
-      margin-bottom: 15px;
-      border-radius: 8px;
-      background-color: #333;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      overflow: hidden;
-      padding: 10px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-    th, td {
-      text-align: center;
-      padding: 8px 12px;
-      border-bottom: 1px solid #444;
-      word-wrap: break-word;
-    }
-    th {
-      background-color: #444;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    tr {
-      transition: background-color 0.3s ease;
-    }
-    tr:hover {
-      background-color: #555;
-    }
-    td {
-      color: #ddd;
-    }
-    .red {
-      background-color: #e74c3c;
-      color: white;
-    }
-    .green {
-      background-color: #2ecc71;
-      color: white;
-    }
-    .yellow {
-      background-color: #f1c40f;
-      color: black;
-    }
-    .no-data {
-      text-align: center;
-      color: #f39c12;
-    }
-    .export-buttons {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .export-buttons button {
-      padding: 10px 20px;
-      background-color: #15a086;
-      border: none;
-      color: black;
-      cursor: pointer;
-      margin: 5px;
-      border-radius: 5px;
-    }
-    .export-buttons i {
-      font-size: 32px;
-    }
-    .export-buttons button:hover {
-      background-color: #16e986;
-    }
-    @media print {
-      .export-buttons {
-        display: none;
-      }
-    }
-    /* Tooltip styles */
-    .tooltip {
-      position: absolute;
-      background-color: #15a086;
-      color: #fff;
-      padding: 8px;
-      border-radius: 5px;
-      font-size: 12px;
-      display: none;
-      box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
-      z-index: 10;
-      transition: opacity 0.2s ease-in-out;
-    }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
 
-    /* Alert styles for futuristic look */
-    .alert {
-      padding: 10px 20px;
-      border-radius: 5px;
-      background-color: #2ecc71;
-      color: white;
-      font-size: 14px;
-      font-weight: bold;
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      display: none;
-      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
-      animation: fadeIn 1s forwards;
-    }
+        .container {
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            margin: 20px;
+            box-sizing: border-box;
+        }
 
-    .alert-danger {
-      background-color: #e74c3c;
-    }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-  </style>
+        .accordion {
+            margin-top: 10px;
+            cursor: pointer;
+            background-color: #1abc9c;
+            color: #fff;
+            padding: 12px;
+            text-align: left;
+            border: none;
+            outline: none;
+            transition: 0.4s;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .panel {
+            display: none;
+            padding: 0 18px;
+            background-color: #2c3e50;
+            overflow: hidden;
+            border: 1px solid #1abc9c;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: #fff;
+        }
+
+        button {
+            cursor: pointer;
+            margin: 5px;
+            padding: 10px;
+            background-color: #1abc9c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2c3e50;
+        }
+
+        .icon {
+            margin-right: 5px;
+        }
+
+        .divider-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .vertical-divider {
+            border-left: 1px solid #ddd;
+            height: 30px;
+            margin: 0 10px;
+        }
+
+        /* Estilos para dispositivos móviles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                width: 100%;
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            .accordion {
+                font-size: 1em;
+                padding: 10px;
+            }
+
+            th, td {
+                font-size: 0.9em;
+                padding: 6px;
+            }
+
+            button {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+        }
+        
+        .icon {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #333;
+        }
+        .config-title {
+            flex: 1; /* Para ocupar el espacio restante */
+            font-size: 18px;
+        }
+        a {
+            text-decoration: none;
+            color: #333;
+            }
+            
+        .config-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #fff;
+            transition: background-color 0.3s;
+        }
+        .config-item:hover {
+            background-color: #1abc9c;
+        }
+        .config-item {
+            border-bottom: none; /* Eliminar el borde en el último ítem */
+            
+            border-radius: 50px;
+        }
+
+          /* Desactivar la selección de texto y el efecto de arrastre en todos los elementos */
+* {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE 10+ */
+  user-select: none; /* estándar */
+
+  -webkit-user-drag: none; /* Safari */
+  -khtml-user-drag: none; /* Konqueror HTML */
+  -moz-user-drag: none; /* Firefox */
+  -o-user-drag: none; /* Opera */
+  user-drag: none; /* estándar */
+ }
+
+        .back-button {
+    position: fixed;
+    top: 10px; /* Distancia desde la parte superior */
+    left: 10px; /* Distancia desde el borde izquierdo */
+    background-color: #16a085; /* Color de fondo */
+    color: #fff; /* Color del texto y del icono */
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s; /* Transición suave para el color de fondo */
+    z-index: 1000; /* Asegura que el botón esté sobre otros elementos */
+}
+
+.back-button i {
+    margin-right: 8px; /* Espacio entre el icono y el texto */
+}
+
+.back-button:hover {
+    background-color: #2c2e50; /* Color de fondo al pasar el ratón */
+}
+        
+    </style>
+
 </head>
 <body>
-  <h1>Reporte de Villas</h1>
+  <button class="back-button" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i> Volver
+    </button>
 
-  <div class="export-buttons">
-    <button id="printTable"><i class="fas fa-print"></i></button>
-    <button id="generatePDF"><i class="fas fa-file-pdf"></i></button>
+  <div class="container">
+    <h2>Consumos de Villa</h2>
+    <div id="accordionContainer">
+      <!-- Sección para carpetas de fechas -->
+    </div>
+    <p style="text-align: center; margin-top: 15px;">
+      
+        
+    <div class="config-item">
+        <i class="fas fa-tools icon"></i>
+        <a href="gestion-de-consumo.html" class="config-title">Gestionar Contadores</a>
+    </div>
+    </div>
+    </p>
   </div>
 
-  <div id="highestLowestContainer"></div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-  <div class="tooltip" id="tooltip"></div>
-  <div class="alert" id="alertMessage"></div>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
+    authDomain: "energycontador-20e7d.firebaseapp.com",
+    databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
+    projectId: "energycontador-20e7d",
+    storageBucket: "energycontador-20e7d.appspot.com",
+    messagingSenderId: "216700307706",
+    appId: "1:216700307706:web:dedc278ff696be60662143"
+  };
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const accordionContainer = document.getElementById("accordionContainer");
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBQZev4QZdClhi4LzdyPlOyJvkyQWRCiKU",
-      authDomain: "energycontador-20e7d.firebaseapp.com",
-      databaseURL: "https://energycontador-20e7d-default-rtdb.firebaseio.com",
-      projectId: "energycontador-20e7d",
-      storageBucket: "energycontador-20e7d.appspot.com",
-      messagingSenderId: "216700307706",
-      appId: "1:216700307706:web:dedc278ff696be60662143"
-    };
+  async function cargarHistorial() {
+    const querySnapshot = await getDocs(collection(db, "consumoRondas"));
+    const historialPorFecha = {};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const container = document.getElementById("highestLowestContainer");
-    const tooltip = document.getElementById("tooltip");
-    const alertMessage = document.getElementById("alertMessage");
+    querySnapshot.forEach((docSnapshot) => {
+      const data = docSnapshot.data();
+      const historial = data.historial || [];
 
-    async function mostrarConsumoPorDia() {
-      const querySnapshot = await getDocs(collection(db, "villas"));
-      const consumoPorFecha = {};
+      historial.forEach((entry, index) => {
+        const fecha = new Date(entry.fecha).toLocaleDateString();
+        if (!historialPorFecha[fecha]) historialPorFecha[fecha] = [];
 
-      querySnapshot.forEach((docSnapshot) => {
-        const data = docSnapshot.data();
-        const historial = data.historial || [];
+        const consumoAnterior = index > 0 ? historial[index - 1].consumo : 0;
+        const consumoActual = entry.consumo;
+        const consumoDiario = consumoActual - consumoAnterior;
 
-        historial.forEach((entry, index) => {
-          const fecha = new Date(entry.fecha).toLocaleDateString();
-          const consumoAnterior = index > 0 ? historial[index - 1].consumo : 0;
-          const consumoActual = entry.consumo;
-          const consumoDiario = consumoActual - consumoAnterior;
-
-          if (!consumoPorFecha[fecha]) consumoPorFecha[fecha] = [];
-          consumoPorFecha[fecha].push({
-            lugar: data.lugar,
-            consumoAnterior,
-            consumoActual,
-            consumoDiario,
-          });
+        historialPorFecha[fecha].push({
+          ...data,
+          consumoAnterior,
+          consumoActual,
+          consumoDiario,
+          fechaModificacion: entry.fecha,
         });
       });
-
-      for (const fecha in consumoPorFecha) {
-        const consumos = consumoPorFecha[fecha];
-        const maxConsumo = Math.max(...consumos.map(item => item.consumoDiario));
-        const minConsumo = Math.min(...consumos.map(item => item.consumoDiario));
-
-        const table = document.createElement("table");
-        table.innerHTML = `
-          <thead>
-            <tr>
-              <th colspan="3">Fecha: ${fecha}</th>
-            </tr>
-            <tr>
-              <th>Tipo</th>
-              <th>Lugar</th>
-              <th>Consumo Diario (Kwh)</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${consumos
-              .map(
-                (item) => {
-                  const isMax = item.consumoDiario === maxConsumo;
-                  const isMin = item.consumoDiario === minConsumo;
-                  const consumoStyle = isMax
-                    ? "red"
-                    : isMin
-                    ? "green"
-                    : "";
-                  return `
-                    <tr class="${consumoStyle}" 
-                        data-consumo-anterior="${item.consumoAnterior}" 
-                        data-consumo-actual="${item.consumoActual}">
-                      <td>${isMax ? "Más Alto" : isMin ? "Más Bajo" : "Intermedio"}</td>
-                      <td>${item.lugar}</td>
-                      <td>${item.consumoDiario}</td>
-                    </tr>
-                  `;
-                }
-              )
-              .join("")}
-          </tbody>
-        `;
-
-        const tableContainer = document.createElement("div");
-        tableContainer.classList.add("table-container");
-        tableContainer.appendChild(table);
-
-        container.appendChild(tableContainer);
-      }
-
-      // Add event listeners for tooltip on table rows
-      document.querySelectorAll("tr").forEach(row => {
-        row.addEventListener("mouseover", function() {
-          const consumoAnterior = this.getAttribute("data-consumo-anterior");
-          const consumoActual = this.getAttribute("data-consumo-actual");
-          const fechaHora = new Date().toLocaleString(); // Getting current date and time
-
-          tooltip.innerHTML = `
-            <strong>Fecha y Hora:</strong> ${fechaHora}<br>
-            <strong>Consumo Anterior:</strong> ${consumoAnterior} Kwh<br>
-            <strong>Consumo Actual:</strong> ${consumoActual} Kwh
-          `;
-          tooltip.style.display = "block";
-          tooltip.style.top = `${this.getBoundingClientRect().top - 30}px`;
-          tooltip.style.left = `${this.getBoundingClientRect().left + this.offsetWidth / 2 - tooltip.offsetWidth / 2}px`;
-        });
-
-        row.addEventListener("mouseout", function() {
-          tooltip.style.display = "none";
-        });
-      });
-    }
-
-    function generatePDF() {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
-
-      const tables = document.querySelectorAll("table");
-      let yOffset = 10;
-
-      tables.forEach((table) => {
-        const tableTitle = table.querySelector("th").innerText.split(": ")[1];
-        pdf.text(`Fecha: ${tableTitle}`, 10, yOffset);
-        yOffset += 10;
-
-        pdf.autoTable({
-          html: table,
-          startY: yOffset,
-          theme: "grid",
-          headStyles: { fillColor: [40, 40, 40] },
-          bodyStyles: { valign: "middle" },
-        });
-
-        yOffset = pdf.lastAutoTable.finalY + 10; // Update the Y position
-      });
-
-      // Finalize PDF generation
-      pdf.save("Reporte de Villas.pdf");
-    }
-
-    function printTable() {
-      window.print();
-    }
-
-    // Alert for PDF generation
-    document.getElementById("generatePDF").addEventListener("click", () => {
-      alertMessage.classList.remove("alert-danger");
-      alertMessage.classList.add("alert");
-      alertMessage.textContent = "Generando el reporte PDF...";
-      alertMessage.style.display = "block";
-      setTimeout(() => {
-        alertMessage.style.display = "none";
-        generatePDF();
-      }, 2000);
     });
 
-    // Alert for printing
-    document.getElementById("printTable").addEventListener("click", () => {
-      alertMessage.classList.remove("alert-danger");
-      alertMessage.classList.add("alert");
-      alertMessage.textContent = "Imprimiendo el reporte...";
-      alertMessage.style.display = "block";
-      setTimeout(() => {
-        alertMessage.style.display = "none";
-        printTable();
-      }, 2000);
-    });
+    for (const fecha in historialPorFecha) {
+      const button = document.createElement("button");
+      button.classList.add("accordion");
+      button.textContent = `Fecha: ${fecha}`;
+      button.addEventListener("click", () => {
+        const panel = document.getElementById(`panel-${fecha.replace(/\//g, "-")}`);
+        panel.style.display = panel.style.display === "block" ? "none" : "block"; // Toggle display
+      });
+      accordionContainer.appendChild(button);
 
-    mostrarConsumoPorDia();
-  </script>
+      const panel = document.createElement("div");
+      panel.classList.add("panel");
+      panel.id = `panel-${fecha.replace(/\//g, "-")}`;
+      panel.innerHTML = `
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Edif. / Apto</th>
+                <th>Consumo Anterior (Kwh)</th>
+                <th>Consumo Actual (Kwh)</th>
+                <th>Consumo Diario (Kwh)</th>
+                <th>Hora de Revisión</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${historialPorFecha[fecha]
+                .map(
+                  (r) => `
+                  <tr>
+                    <td>${r.lugar}</td>
+                    <td>${r.consumoAnterior}</td>
+                    <td>${r.consumoActual}</td>
+                    <td style="color: ${r.consumoDiario > 0 ? "#16e086" : r.consumoDiario < 0 ? "red" : "yellow"};">
+                      ${r.consumoDiario}
+                    </td>
+                    <td>${new Date(r.fechaModificacion).toLocaleTimeString()}</td>
+                  </tr>`
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+      accordionContainer.appendChild(panel);
+    }
+  }
+
+  cargarHistorial();
+</script>
+
+
 </body>
-</html>
+</html> 
+
+
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+
+     
+
+
+
+  <!-- BLOQUEO DE CLIC DERECHO, F12 ETC. -->
+
+  <script>
+        // Bloquear el clic derecho
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // Bloquear teclas específicas (F12, Ctrl+Shift+I, Ctrl+U)
+        document.addEventListener('keydown', function(e) {
+            // F12
+            if (e.key === "F12") {
+                e.preventDefault();
+            }
+
+            // Ctrl+Shift+I (inspeccionar)
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                e.preventDefault();
+            }
+
+            // Ctrl+U (ver código fuente)
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+            }
+
+            // Ctrl+Shift+J (consola)
+            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+                e.preventDefault();
+            }
+        });
+                </script>
+                
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+ <style>
+    /* Estilos generales */
+    /* Botón flotante */
+    .floating-button {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #16e086;
+      color: #fff;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+      text-decoration: none;
+    }
+    .floating-button:hover {
+      transform: scale(1.1);
+      background-color: #2c3e50;
+    }
+
+    /* Estilo de enlaces ocultos */
+    .links {
+      position: fixed;
+      bottom: 100px;
+      right: 35px;
+      display: none;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .links a {
+      background-color: #16e086;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 5px;
+      margin: 5px 0;
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+    .links a:hover {
+      background-color: #2c3e50;
+    }
+    .links a i {
+      margin-right: 8px;
+    }
+
+    /* Animación de despliegue de enlaces */
+    .show-links .links {
+      display: flex;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    /* Animación de aparición */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+  
+
+
+  <!-- Botón flotante -->
+<a href="#" class="floating-button" onclick="toggleLinks()">
+  <i class="fa-sharp fa-solid fa-trash"></i>
+</a>
+
+<!-- Enlaces ocultos que aparecen al hacer clic en el botón -->
+<div class="links">
+  <a href="villas-eliminar-consumos.html"><i class="fa-sharp fa-solid fa-trash"></i> Eliminar consumos</a>
+  
+</div>
+</script>
+
+
+    <script>
+  function toggleLinks() {
+    document.body.classList.toggle('show-links');
+  }
+</script>
