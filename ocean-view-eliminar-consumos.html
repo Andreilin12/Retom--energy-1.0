@@ -274,7 +274,7 @@
     });
 
     const accordionContainer = document.getElementById("accordionContainer");
-    accordionContainer.innerHTML = ""; // Limpia el contenedor
+    accordionContainer.innerHTML = "";
 
     for (const fecha in historialPorFecha) {
       const fechaId = fecha.replace(/\//g, "-");
@@ -291,161 +291,102 @@
       const panel = document.createElement("div");
       panel.classList.add("panel");
       panel.id = `panel-${fechaId}`;
-      panel.innerHTML = ` 
+      panel.innerHTML = `
         <div class="table-container">
           <table>
             <thead>
               <tr>
-                <th><input type="checkbox" id="selectAll-${fechaId}"> Seleccionar Todo</th>
                 <th>Edif. / Apto</th>
                 <th>Número de Medidores</th>
                 <th>Número de Contratos</th>
                 <th>Consumo Kwh</th>
                 <th>Hora de revisión</th>
-                <th>Acción</th>
               </tr>
             </thead>
             <tbody>
               ${historialPorFecha[fecha].map((r) => `
                 <tr>
-                  <td><input type="checkbox" class="select-item" data-doc-id="${r.id}" data-fecha="${r.entry.fecha}" data-consumo="${r.entry.consumo}"></td>
                   <td>${r.lugar}</td>
                   <td>${r.medidores}</td>
                   <td>${r.contratos}</td>
                   <td>${r.entry.consumo}</td>
                   <td>${new Date(r.entry.fecha).toLocaleTimeString()}</td>
-                  <td>
-                    <button class="eliminar-btn" 
-                            data-doc-id="${r.id}" 
-                            data-fecha="${r.entry.fecha}" 
-                            data-consumo="${r.entry.consumo}">
-                      Eliminar
-                    </button>
-                  </td>
                 </tr>`).join("")}
             </tbody>
           </table>
+          <button class="eliminar-todos-btn" data-fecha="${fecha}">
+            Eliminar todos los consumos de esta fecha
+          </button>
         </div>
-        <button class="eliminar-varios-btn" id="eliminarVarios-${fechaId}">Eliminar Seleccionados</button>
       `;
       accordionContainer.appendChild(panel);
 
-      // Añadir eventos a los botones de eliminar
-      document.querySelectorAll(".eliminar-btn").forEach((btn) => {
+      document.querySelectorAll(".eliminar-todos-btn").forEach((btn) => {
         btn.addEventListener("click", async (event) => {
-          const docId = event.target.getAttribute("data-doc-id");
           const fecha = event.target.getAttribute("data-fecha");
-          const consumo = event.target.getAttribute("data-consumo");
-          await eliminarConsumo(docId, fecha, consumo);
-        });
-      });
 
-      // Añadir funcionalidad para eliminar varios
-      document.getElementById(`eliminarVarios-${fechaId}`).addEventListener("click", () => {
-        eliminarVariosConsumos(fechaId);
-      });
+          const confirm = await Swal.fire({
+            title: "Confirmar eliminación",
+            text: "¿Estás seguro de que deseas eliminar todos los consumos de esta fecha?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar"
+          });
 
-      // Marcar/deseleccionar todos los checkboxes
-      document.getElementById(`selectAll-${fechaId}`).addEventListener("change", (e) => {
-        const checkboxes = document.querySelectorAll(`#panel-${fechaId} .select-item`);
-        checkboxes.forEach((checkbox) => {
-          checkbox.checked = e.target.checked;
+          if (confirm.isConfirmed) {
+            // Mostrar el indicador de carga
+            Swal.fire({
+              title: 'Eliminando...',
+              text: 'Esto puede tardar unos momentos.',
+              allowOutsideClick: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
+
+            // Llamar a la función de eliminación
+            await eliminarConsumosDeFecha(fecha);
+
+            // Cerrar el indicador de carga
+            Swal.close();
+
+            // Mostrar mensaje de confirmación de eliminación
+            Swal.fire("Eliminado", "Todos los consumos de esta fecha han sido eliminados.", "success");
+          }
         });
       });
     }
   }
 
-  async function eliminarConsumo(docId, fecha, consumo) {
+  async function eliminarConsumosDeFecha(fecha) {
     try {
-      const docRef = doc(db, "villas", docId);
-      const docSnapshot = await getDoc(docRef);
-
-      if (docSnapshot.exists()) {
+      const querySnapshot = await getDocs(collection(db, "consumoRondas"));
+      
+      for (const docSnapshot of querySnapshot.docs) {
+        const docId = docSnapshot.id;
         const data = docSnapshot.data();
         const updatedHistorial = data.historial.filter(
-          (entry) => !(entry.fecha === fecha && entry.consumo === consumo)
+          (entry) => new Date(entry.fecha).toLocaleDateString() !== fecha
         );
 
         if (updatedHistorial.length === 0) {
-          await deleteDoc(docRef);
+          await deleteDoc(doc(db, "consumoRondas", docId));
         } else {
-          await updateDoc(docRef, { historial: updatedHistorial });
+          await updateDoc(doc(db, "consumoRondas", docId), { historial: updatedHistorial });
         }
-
-        Swal.fire({
-          title: "Éxito",
-          text: "Consumo eliminado correctamente.",
-          icon: "success",
-          confirmButtonText: "Aceptar"
-        });
-
-        cargarHistorial();
-      } else {
-        Swal.fire({
-          title: "Error",
-          text: "No se encontró el consumo.",
-          icon: "error",
-          confirmButtonText: "Aceptar"
-        });
-      }
-    } catch (error) {
-      console.error("Error al eliminar el consumo:", error);
-      Swal.fire({
-        title: "Error",
-        text: "Hubo un error al eliminar el consumo.",
-        icon: "error",
-        confirmButtonText: "Aceptar"
-      });
-    }
-  }
-
-  async function eliminarVariosConsumos(fechaId) {
-    const selectedItems = document.querySelectorAll(`#panel-${fechaId} .select-item:checked`);
-
-    if (selectedItems.length === 0) {
-      Swal.fire({
-        title: "Error",
-        text: "No has seleccionado ningún consumo para eliminar.",
-        icon: "warning",
-        confirmButtonText: "Aceptar"
-      });
-      return;
-    }
-
-    const consumosAEliminar = [];
-
-    selectedItems.forEach((checkbox) => {
-      consumosAEliminar.push({
-        docId: checkbox.getAttribute("data-doc-id"),
-        fecha: checkbox.getAttribute("data-fecha"),
-        consumo: checkbox.getAttribute("data-consumo"),
-      });
-    });
-
-    try {
-      for (const consumo of consumosAEliminar) {
-        await eliminarConsumo(consumo.docId, consumo.fecha, consumo.consumo);
       }
 
-      Swal.fire({
-        title: "Éxito",
-        text: "Consumos eliminados correctamente.",
-        icon: "success",
-        confirmButtonText: "Aceptar"
-      });
+      cargarHistorial();
     } catch (error) {
       console.error("Error al eliminar los consumos:", error);
-      Swal.fire({
-        title: "Error",
-        text: "Hubo un error al eliminar los consumos.",
-        icon: "error",
-        confirmButtonText: "Aceptar"
-      });
+      Swal.fire("Error", "Hubo un error al eliminar los consumos.", "error");
     }
   }
 
   cargarHistorial();
 </script>
+
 
 
 </body>
