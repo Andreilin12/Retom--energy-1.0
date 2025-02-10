@@ -459,3 +459,58 @@ async function cargarPerfil() {
 
 </body>
 </html>
+
+
+
+
+
+
+<style>
+        
+        .alert {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .alert button {
+            background-color: #f5c6cb;
+            border: none;
+            color: #721c24;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="alert" id="alert">
+        <div>
+            <strong>Advertencia:</strong> Por favor, realice su pago antes del 10/03/2025. De lo contrario, perderá el acceso a su cuenta y sus datos serán borrados. 
+            Comuníquese con soporte: <a href="mailto:info@retomrt.com">info@retomrt.com</a> o (849) 515-8440.
+        </div>
+        <button onclick="closeAlert()">Cerrar</button>
+    </div>
+
+    <script>
+        function closeAlert() {
+            document.getElementById('alert').style.display = 'none';
+        }
+
+        // Mantener la alerta visible si no se cierra
+        window.onload = function() {
+            document.getElementById('alert').style.display = 'flex';
+        };
+    </script>
+</body>
+</html>
+
